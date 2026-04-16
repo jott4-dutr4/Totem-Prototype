@@ -468,7 +468,7 @@ function renderizarResumoCompleto() {
               <button onclick="alterarQtdResumo(${item.id}, 1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200"><i data-lucide="plus" class="w-4 h-4"></i></button>
             </div>
 
-            <button onclick="removerItemResumo(${idx})" class="ml-auto text-slate-300 hover:text-red-500 transition-colors p-2">
+            <button onclick="removerItemResumo(${idx})" class="ml-auto text-blue-900 hover:text-red-600 active:scale-90 transition-all p-2">
               <i data-lucide="trash-2" class="w-5 h-5"></i>
             </button>
           </div>
