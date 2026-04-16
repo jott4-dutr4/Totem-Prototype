@@ -1,0 +1,43 @@
+body {
+  font-family: "Inter", sans-serif;
+}
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.product-card:active {
+  transform: scale(0.98);
+}
+/* Custom scrollbar for inner containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+/* Animação do item voando para o carrinho */
+.item-voador {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none; /* Garante que o cliente não consiga clicar na imagem enquanto ela voa */
+  transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Faz o efeito "estilingue/sugado" */
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Uma sombra legal pra destacar o item da tela */
+}
