@@ -266,22 +266,13 @@ function removerItem(idx) {
 function irParaPagamento() {
   // Trava de segurança: Verifica se o carrinho está zerado
   if (state.carrinho.length === 0) {
-    alert(
-      "Atenção! Seu carrinho está vazio. Adicione produtos para continuar.",
-    );
-    return; // O 'return' faz a função parar e não executa o código de baixo
+    alert("Atenção! Seu carrinho está vazio. Adicione produtos para continuar.");
+    return; 
   }
-
-  state.metodoPagamentoSelecionado = null;
-  document.getElementById("btn-finalizar-venda-novo").disabled = true;
-
-  document.querySelectorAll(".btn-pagamento").forEach((b) => {
-    b.classList.remove("border-blue-900", "bg-blue-50");
-    b.classList.add("border-slate-300", "bg-white");
-  });
-
-  atualizarResumoPedidoUI();
-  navegarPara("screen-pagamento");
+  
+  // Agora ele desenha o resumo e joga o cliente pra tela nova!
+  renderizarResumoCompleto(); 
+  navegarPara("screen-resumo");
 }
 
 function selecionarPagamento(metodo) {
@@ -452,4 +443,73 @@ function alterarQuantidadeManual(id, valor) {
     atualizarCarrinhoUI();
     renderizarCatalogo(document.getElementById("search-catalogo").value);
   }
+}
+// --- NOVAS FUNÇÕES DO RESUMO DO PEDIDO ---
+
+function renderizarResumoCompleto() {
+  const container = document.getElementById("lista-resumo-completo");
+  container.innerHTML = "";
+  let total = 0;
+
+  state.carrinho.forEach((item, idx) => {
+    total += item.total;
+    container.innerHTML += `
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <img src="${item.img}" class="w-20 h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
+        
+        <div class="flex-1">
+          <h4 class="font-bold text-blue-900 leading-tight">${item.nome}</h4>
+          <p class="text-sm font-black text-blue-800 mt-1">R$ ${item.total.toFixed(2)}</p>
+          
+          <div class="flex items-center gap-3 mt-3">
+            <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
+              <button onclick="alterarQtdResumo(${item.id}, -1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="minus" class="w-4 h-4"></i></button>
+              <span class="px-3 py-1 font-bold text-sm bg-white border-x border-slate-200">${item.qtd}</span>
+              <button onclick="alterarQtdResumo(${item.id}, 1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="plus" class="w-4 h-4"></i></button>
+            </div>
+
+            <button onclick="removerItemResumo(${idx})" class="ml-auto text-blue-900 hover:text-red-600 active:scale-90 transition-all p-2">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("total-resumo-tela").innerText = total.toFixed(2);
+  lucide.createIcons();
+}
+
+function alterarQtdResumo(id, delta) {
+  // Reutiliza sua lógica de alterar quantidade e redesenha o resumo
+  alterarQuantidade(id, delta);
+  renderizarResumoCompleto();
+}
+
+function removerItemResumo(idx) {
+  const nomeItem = state.carrinho[idx].nome;
+  if (confirm(`Deseja realmente remover "${nomeItem}" do seu pedido?`)) {
+    state.carrinho.splice(idx, 1);
+    if (state.carrinho.length === 0) {
+      navegarPara("screen-produtos");
+    } else {
+      renderizarResumoCompleto();
+    }
+    atualizarCarrinhoUI();
+  }
+}
+
+function irParaPagamentoReal() {
+  state.metodoPagamentoSelecionado = null;
+  document.getElementById("btn-finalizar-venda-novo").disabled = true;
+  
+  // Limpa os botões de pagamento para não ficarem selecionados do pedido anterior
+  document.querySelectorAll(".btn-pagamento").forEach((b) => {
+    b.classList.remove("border-blue-900", "bg-blue-50");
+    b.classList.add("border-slate-300", "bg-white");
+  });
+  
+  atualizarResumoPedidoUI(); 
+  navegarPara("screen-pagamento");
 }
