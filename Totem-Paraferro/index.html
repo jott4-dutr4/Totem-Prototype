@@ -272,9 +272,13 @@
           </div>
         </section>
         <section id="screen-resumo" class="hidden h-full flex flex-col fade-in bg-slate-50">
-          <div class="p-6 bg-white border-b border-slate-200 shadow-sm text-center">
-            <h2 class="text-2xl font-black text-blue-900">Resumo do Pedido</h2>
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Revise seus itens antes de pagar</p>
+          
+          <div class="p-4 md:p-6 bg-white border-b border-slate-200 flex justify-center items-center sticky top-0 z-30 shadow-sm min-h-[80px] md:min-h-[100px]">
+            <img 
+              src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" 
+              alt="Logo Paraferro" 
+              class="w-32 md:w-44"
+            />
           </div>
 
           <div class="flex-1 overflow-y-auto p-6 space-y-4" id="lista-resumo-completo">
@@ -287,11 +291,12 @@
             </div>
 
             <div class="flex gap-4">
-              <button onclick="navegarPara('screen-produtos')" class="flex-1 bg-red-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-red-700 active:scale-95 transition-all text-sm">
-                CONTINUAR COMPRANDO?
+              <button onclick="navegarPara('screen-produtos')" class="flex-1 bg-red-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-red-700 active:scale-95 transition-all text-sm uppercase">
+                Continuar Comprando?
               </button>
-              <button onclick="irParaPagamentoReal()" class="flex-[1.5] bg-blue-900 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all text-lg">
-                GERAR PEDIDO
+              
+              <button onclick="irParaPagamentoReal()" class="flex-1 bg-blue-900 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-blue-800 active:scale-95 transition-all text-sm uppercase">
+                Gerar Pedido
               </button>
             </div>
           </div>
