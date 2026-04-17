@@ -7,12 +7,11 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body class="text-blue-900 h-screen overflow-hidden select-none bg-slate-50">
@@ -332,35 +331,23 @@
 
                 <div class="space-y-4">
                   <button
-                    onclick="selecionarPagamento('PIX')"
-                    id="btn-pag-pix"
-                    class="btn-pagamento w-full bg-white border-2 border-slate-300 p-5 rounded-2xl flex items-center justify-between hover:border-blue-900 transition-all text-left group shadow-sm"
-                  >
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="text-blue-600 bg-blue-50 p-3 rounded-full group-hover:scale-110 transition-transform"
-                      >
-                        <i data-lucide="qr-code" class="w-6 h-6"></i>
-                      </div>
-                      <div>
-                        <p
-                          class="font-bold text-blue-900 text-lg leading-tight"
-                        >
-                          Pix
-                        </p>
-                        <p
-                          class="text-[11px] text-blue-700 font-bold mt-1 bg-blue-100 inline-block px-2 py-0.5 rounded uppercase tracking-wider"
-                        >
-                          Aprovação imediata
-                        </p>
-                      </div>
-                    </div>
-                    <i
-                      data-lucide="chevron-right"
-                      class="text-slate-400 group-hover:text-blue-900"
-                    ></i>
-                  </button>
-
+  onclick="selecionarPagamento('PIX')"
+  id="btn-pag-pix"
+  class="btn-pagamento w-full bg-white border-2 border-slate-300 p-5 rounded-2xl flex items-center justify-between hover:border-blue-900 transition-all text-left group shadow-sm active:scale-95"
+>
+  <div class="flex items-center gap-4">
+    <div class="bg-[#E2F9F8] w-12 h-12 rounded-full group-hover:scale-110 transition-transform flex items-center justify-center">
+      <i class="fa-brands fa-pix text-[24px] text-[#32BCAD]"></i>
+    </div>
+    <div>
+      <p class="font-bold text-blue-900 text-lg leading-tight">Pix</p>
+      <p class="text-[11px] text-blue-700 font-bold mt-1 bg-blue-100 inline-block px-2 py-0.5 rounded uppercase tracking-wider">
+        Aprovação imediata
+      </p>
+    </div>
+  </div>
+  <i data-lucide="chevron-right" class="text-slate-400 group-hover:text-blue-900"></i>
+</button>
                   <button
                     onclick="selecionarPagamento('Cartão de Crédito')"
                     id="btn-pag-credito"
@@ -390,32 +377,43 @@
                   </button>
 
                   <button
-                    onclick="selecionarPagamento('Cartão de Débito')"
-                    id="btn-pag-debito"
-                    class="btn-pagamento w-full bg-white border-2 border-slate-300 p-5 rounded-2xl flex items-center justify-between hover:border-blue-900 transition-all text-left group shadow-sm"
-                  >
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="text-blue-600 bg-blue-50 p-3 rounded-full group-hover:scale-110 transition-transform"
-                      >
-                        <i data-lucide="credit-card" class="w-6 h-6"></i>
-                      </div>
-                      <div>
-                        <p
-                          class="font-bold text-blue-900 text-lg leading-tight"
-                        >
-                          Cartão de Débito
-                        </p>
-                        <p class="text-xs text-slate-500 font-medium mt-1">
-                          Débito direto na conta
-                        </p>
-                      </div>
-                    </div>
-                    <i
-                      data-lucide="chevron-right"
-                      class="text-slate-400 group-hover:text-blue-900"
-                    ></i>
-                  </button>
+  onclick="selecionarPagamento('Cartão de Débito')"
+  id="btn-pag-debito"
+  class="btn-pagamento w-full bg-white border-2 border-slate-300 p-5 rounded-2xl flex items-center justify-between hover:border-blue-900 transition-all text-left group shadow-sm"
+>
+  <div class="flex items-center gap-4">
+    
+    <!-- Ícone -->
+    <div
+      class="relative text-blue-600 bg-blue-50 p-3 rounded-full group-hover:scale-110 transition-transform"
+    >
+      <i data-lucide="credit-card" class="w-6 h-6"></i>
+
+      <span
+  class="absolute inset-0 flex items-center justify-center text-[6px] font-extrabold text-green-600 mt-1"
+>
+  $
+</span>
+    </div>
+
+    <!-- Texto -->
+    <div>
+      <p class="font-bold text-blue-900 text-lg leading-tight">
+        Cartão de Débito
+      </p>
+
+      <p class="text-xs text-slate-500 font-medium mt-1">
+        Débito direto na conta
+      </p>
+    </div>
+  </div>
+
+  <!-- Seta -->
+  <i
+    data-lucide="chevron-right"
+    class="text-slate-400 group-hover:text-blue-900"
+  ></i>
+</button>
                 </div>
               </div>
 
@@ -538,7 +536,7 @@
             </div>
 
             <p class="text-center text-[10px] text-slate-400 italic">
-              Obrigado pela preferência!
+              Obrigado pela preferência!!
             </p>
           </div>
 
