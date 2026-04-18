@@ -1,3 +1,10 @@
+<!-- 
+  📄 ARQUIVO: cadastro.html
+  🧠 PROPÓSITO: Tela para novos clientes.
+  
+  Essa tela é aberta caso o CPF digitado na index.html NÃO seja encontrado 
+  no nosso banco do Supabase. A estrela daqui é a integração com o ViaCEP.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -37,9 +44,13 @@
               class="w-56 absolute top-[30px] right-[40px]"
             />
 
+            <!-- ========================================== -->
+            <!-- BLOCO: FORMULÁRIO DE CADASTRO              -->
+            <!-- ========================================== -->
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
               <div>
                 <label class="block text-sm font-bold text-slate-600 mb-1">Nome Completo *</label>
+                <!-- Cada input tem um 'id' único que nosso app.js usará para "pescar" a informação depois -->
                 <input
                   id="cad-nome"
                   class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
@@ -72,6 +83,9 @@
 
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-1">
+                  <!-- ⚡ INTEGRAÇÃO VIA CEP: Preste atenção no oninput="mascaraCEP(this)" -->
+                  <!-- Lá dentro do app.js, a máscara vai conferir se o número chegou a 8 dígitos. -->
+                  <!-- Se sim, o app.js puxa os dados e joga no campo Endereço sozinho! -->
                   <label class="block text-sm font-bold text-slate-600 mb-1">CEP *</label>
                   <input
                     id="cad-cep"
@@ -83,6 +97,7 @@
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-sm font-bold text-slate-600 mb-1">Endereço *</label>
+                  <!-- Campo que é auto-preenchido pela API do ViaCEP -->
                   <input
                     id="cad-end"
                     class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
@@ -100,6 +115,9 @@
                 />
               </div>
 
+              <!-- 🛡️ CAMPO OCULTO (Hidden) -->
+              <!-- Lembra que a gente guardou o CPF que ele já digitou antes de vir pra cá? -->
+              <!-- Esse campo invisível recebe esse valor, pra depois salvar no banco sem a pessoa ver. -->
               <input type="hidden" id="cad-cpf" />
 
               <button
@@ -114,13 +132,20 @@
         </section>
       </div>
     </div>
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
       lucide.createIcons();
-      // Preencher o input hidden com o CPF vindo da sessão (se houver)
+      
+      // ==========================================
+      // 🧠 LÓGICA DE TELA LOCAL
+      // ==========================================
+      // Assim que a tela carrega, tentamos buscar se tem algum CPF esperando 
+      // lá na memória do navegador (no sessionStorage).
       const cpfSessao = sessionStorage.getItem('cpfEmCadastro');
       if (cpfSessao) {
+          // Se achamos o CPF, guardamos dentro daquele 'input type="hidden"' lá em cima
           document.getElementById('cad-cpf').value = cpfSessao;
       }
     </script>

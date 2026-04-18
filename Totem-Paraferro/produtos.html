@@ -1,3 +1,11 @@
+<!-- 
+  📄 ARQUIVO: produtos.html
+  🧠 PROPÓSITO: Tela principal da loja (Catálogo).
+  
+  Aqui o cliente vê quem ele é, busca produtos, adiciona no carrinho 
+  e vê o valor total subindo. Esta tela é fortemente dependente 
+  do Javascript (app.js) para desenhar as "caixinhas" dos produtos.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -16,15 +24,21 @@
     <div class="flex h-full w-full bg-slate-50 overflow-hidden">
       <div class="flex-1 relative bg-slate-50 overflow-y-auto" id="main-content">
         <section id="screen-produtos" class="h-full flex flex-col fade-in bg-slate-50">
+          
+          <!-- ========================================== -->
+          <!-- BLOCO: CABEÇALHO (Header)                  -->
+          <!-- ========================================== -->
           <div class="p-4 md:p-6 bg-white border-b border-slate-200 flex justify-between items-center sticky top-0 z-30 shadow-sm">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 md:w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-900 shrink-0">
                 <i data-lucide="user"></i>
               </div>
               <div>
+                <!-- O app.js vai colocar o nome do usuário dentro dessa tag <h2> -->
                 <h2 class="text-lg md:text-xl font-bold text-blue-900 leading-tight" id="display-cliente-nome">
                   ...
                 </h2>
+                <!-- Botão de "Sair". Ao clicar, limpa a memória (sessionStorage) inteira -->
                 <button onclick="reiniciarTotem()" class="text-[10px] md:text-xs text-red-500 uppercase font-bold tracking-widest hover:underline mt-1">
                   Sair / Nova Venda
                 </button>
@@ -37,6 +51,7 @@
               class="w-32 md:w-44 absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 z-50"
             />
 
+            <!-- BOTÃO DO CARRINHO (Canto Superior Direito) -->
             <div class="flex items-center gap-3 md:gap-4 justify-end">
               <button
                 onclick="irParaPagamento()"
@@ -44,6 +59,7 @@
                 id="btn-carrinho-topo"
               >
                 <i data-lucide="shopping-cart" class="w-5 h-5 md:w-7 md:h-7"></i>
+                <!-- BOLINHA DO CARRINHO: Começa escondida (hidden) e o JS liga se houver produtos -->
                 <span
                   id="cart-badge"
                   class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold min-w-[20px] h-5 md:min-w-[24px] md:h-6 flex items-center justify-center rounded-full border-2 border-white hidden"
@@ -52,10 +68,16 @@
             </div>
           </div>
 
+          <!-- ========================================== -->
+          <!-- BLOCO: CORPO (Busca e Catálogo)            -->
+          <!-- ========================================== -->
           <div class="flex-1 flex flex-col overflow-hidden relative">
             <div class="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto bg-slate-50">
+              
+              <!-- BARRA DE PESQUISA -->
               <div class="relative mb-6 group">
                 <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-900 transition-colors"></i>
+                <!-- ⚡ EVENTO oninput: Cada vez que o cara digita, o JS filtra o catálogo em tempo real! -->
                 <input
                   id="search-catalogo"
                   type="text"
@@ -65,16 +87,20 @@
                 />
               </div>
 
-              <!-- Loading spinner -->
+              <!-- Loading spinner (Aparece só enquanto o Supabase pensa...) -->
               <div id="loading-produtos" class="flex flex-col items-center justify-center py-20 text-blue-900">
                   <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-4"></i>
                   <p class="font-bold">Carregando catálogo...</p>
               </div>
 
+              <!-- ONDE A MÁGICA ACONTECE: O JS (app.js) vai injetar (innerHTML) dezenas de caixinhas (divs) com os produtos dentro deste grid. -->
               <div id="grid-catalogo" class="grid grid-cols-2 gap-4 md:gap-6 pb-20 hidden"></div>
             </div>
           </div>
 
+          <!-- ========================================== -->
+          <!-- BLOCO: RODAPÉ (Valor Total Fixo)           -->
+          <!-- ========================================== -->
           <div class="bg-white border-t-2 border-slate-100 px-8 py-6 flex justify-between items-center z-30 shrink-0 shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.08)]">
             <span class="text-2xl md:text-3xl font-black text-blue-900 tracking-tight">Total</span>
             <span class="text-2xl md:text-3xl font-black text-blue-900 tracking-tight">R$ <span id="cart-total-rodape">0.00</span></span>
@@ -82,14 +108,20 @@
         </section>
       </div>
     </div>
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
       lucide.createIcons();
+      
+      // ==========================================
+      // 🧠 INICIALIZAÇÃO DA TELA (window.onload)
+      // ==========================================
+      // Assim que todo o HTML for carregado, rodamos essas três funções:
       window.onload = function() {
-          carregarProdutosDoBanco();
-          verificarSessaoCliente();
-          carregarCarrinhoDaSessao();
+          carregarProdutosDoBanco(); // 1. Vai no Supabase baixar os produtos
+          verificarSessaoCliente();  // 2. Confere se tem alguém logado (se não tiver, joga pra index)
+          carregarCarrinhoDaSessao(); // 3. Se a pessoa já tinha algo no carrinho (ex: foi pra tela de resumo e voltou), a gente restaura na tela
       };
     </script>
   </body>
