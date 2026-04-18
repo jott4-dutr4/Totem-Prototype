@@ -1,48 +1,4 @@
-const catalogoProdutos = [
-  {
-    id: 1,
-    nome: "Cimento CP II 50kg",
-    desc: "Votorantim. Ideal para obras em geral.",
-    preco: 34.9,
-    img: "https://i.postimg.cc/L6Tg24q5/Cimento.jpg",
-  },
-  {
-    id: 2,
-    nome: "Tijolo Baiano 8 Furos",
-    desc: "Milheiro (1000 unidades). Medida 9x19x29.",
-    preco: 890.0,
-    img: "https://i.postimg.cc/L6Tg24qJ/Tijolo8furos.jpg",
-  },
-  {
-    id: 3,
-    nome: "Areia Média (m³)",
-    desc: "Areia lavada ensacada ou a granel.",
-    preco: 115.0,
-    img: "https://i.postimg.cc/CLNnSMZ1/90_areia_media_lavada_a_granel_venda_1_2_metro_7955_1_f8b07c7518a55213b19d9b6f529c43e4_jpg.webp",
-  },
-  {
-    id: 4,
-    nome: "Brita nº 1 (m³)",
-    desc: "Ideal para lajes e vigas estruturais.",
-    preco: 108.0,
-    img: "https://i.postimg.cc/Pr4vTfLN/brita.jpg",
-  },
-  {
-    id: 5,
-    nome: "Argamassa AC-III 20kg",
-    desc: "Quartzolit. Uso interno e externo.",
-    preco: 41.5,
-    img: "https://i.postimg.cc/gJN1GZPH/argamassa.webp",
-  },
-  {
-    id: 6,
-    nome: "Vergalhão Nervurado 3/8",
-    desc: "Barra de 12 metros. Alta resistência.",
-    preco: 78.9,
-    img: "https://i.postimg.cc/gJN1GZPq/vergalhao.jpg",
-  },
-];
-
+// Estado global no escopo da página atual
 let state = {
   cliente: null,
   carrinho: [],
@@ -50,23 +6,46 @@ let state = {
   metodoPagamentoSelecionado: null,
 };
 
-const db = {
-  getClientes: () => JSON.parse(localStorage.getItem("clientes")) || [],
-  salvarCliente: (cli) => {
-    const clientes = db.getClientes();
-    clientes.push(cli);
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-  },
-  buscarPorCPF: (cpf) => db.getClientes().find((c) => c.cpf === cpf),
-};
+let catalogoProdutos = [];
 
-function navegarPara(screenId) {
-  document
-    .querySelectorAll("section")
-    .forEach((s) => s.classList.add("hidden"));
-  document.getElementById(screenId).classList.remove("hidden");
-  lucide.createIcons();
+// ==========================================
+// FUNÇÕES DE SESSÃO E INICIALIZAÇÃO
+// ==========================================
+
+function salvarSessao() {
+  sessionStorage.setItem('totemState', JSON.stringify(state));
 }
+
+function carregarSessao() {
+  const saved = sessionStorage.getItem('totemState');
+  if (saved) {
+    state = JSON.parse(saved);
+  }
+}
+
+function verificarSessaoCliente() {
+  carregarSessao();
+  if (!state.cliente) {
+    // Se não tem cliente na sessão, manda pro início
+    window.location.href = 'index.html';
+  } else {
+    const displayNome = document.getElementById("display-cliente-nome");
+    if (displayNome) {
+      displayNome.innerText = `Olá, ${state.cliente.nome.split(" ")[0]}!`;
+    }
+  }
+}
+
+function carregarCarrinhoDaSessao() {
+  atualizarCarrinhoUI();
+  if (document.getElementById('grid-catalogo')) {
+    renderizarCatalogo();
+  }
+}
+
+// ==========================================
+// MASCARAS E VALIDAÇÕES
+// ==========================================
 
 function mascaraCPF(i) {
   let v = i.value.replace(/\D/g, "");
@@ -80,23 +59,96 @@ function mascaraCEP(i) {
   i.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
 }
 
-function verificarCPF() {
-  const cpf = document.getElementById("input-cpf-check").value;
-  if (cpf.length < 14) return alert("CPF incompleto!");
-
-  const encontrado = db.buscarPorCPF(cpf);
-  if (encontrado) {
-    state.cliente = encontrado;
-    iniciarCompra();
+function mascaraTel(i) {
+  let v = i.value.replace(/\D/g, "");
+  if (v.length > 11) v = v.slice(0, 11);
+  if (v.length > 10) {
+    i.value = v.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  } else if (v.length > 6) {
+    i.value = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+  } else if (v.length > 2) {
+    i.value = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
   } else {
-    document.getElementById("cad-cpf").value = cpf;
-    navegarPara("screen-cadastro");
+    i.value = v;
   }
 }
 
-function salvarCadastro() {
+function isCPFValido(cpf) {
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+  let resto = 11 - (soma % 11);
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.charAt(9))) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+  resto = 11 - (soma % 11);
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.charAt(10))) return false;
+  return true;
+}
+
+// ==========================================
+// TELA CPF
+// ==========================================
+
+async function verificarCPF() {
+  const input = document.getElementById("input-cpf-check");
+  const btn = document.querySelector('button[onclick="verificarCPF()"]'); // Seleção corrigida
+  const cpfFormatado = input.value;
+  const cpfLimpo = cpfFormatado.replace(/\D/g, "");
+
+  if (!isCPFValido(cpfLimpo)) {
+    return alert("CPF inválido! Verifique o número digitado.");
+  }
+
+  // Loading state
+  const textoOriginal = btn.innerText;
+  btn.innerText = "Buscando...";
+  btn.disabled = true;
+
+  try {
+    // Busca no Supabase
+    const { data, error } = await supabaseClient
+      .from('clientes')
+      .select('*')
+      .eq('cpf', cpfLimpo)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = Não encontrou (o que é normal se for novo)
+      console.error(error);
+      alert("Erro ao consultar banco de dados.");
+      return;
+    }
+
+    if (data) {
+      // Cliente existe
+      state.cliente = data;
+      salvarSessao();
+      window.location.href = 'produtos.html';
+    } else {
+      // Cliente novo
+      sessionStorage.setItem('cpfEmCadastro', cpfFormatado);
+      window.location.href = 'cadastro.html';
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro detalhado: " + err.message + "\n(Aperte F12 para mais info)");
+  } finally {
+    btn.innerText = textoOriginal;
+    btn.disabled = false;
+  }
+}
+
+// ==========================================
+// TELA CADASTRO
+// ==========================================
+
+async function salvarCadastro() {
   const nome = document.getElementById("cad-nome").value.trim();
-  const cpf = document.getElementById("cad-cpf").value.trim();
+  const cpfForm = document.getElementById("cad-cpf").value.trim();
+  const cpfLimpo = cpfForm.replace(/\D/g, "");
   const tel = document.getElementById("cad-tel").value.trim();
   const email = document.getElementById("cad-email").value.trim();
   const cep = document.getElementById("cad-cep").value.trim();
@@ -104,28 +156,90 @@ function salvarCadastro() {
   const numero = document.getElementById("cad-num").value.trim();
 
   if (!nome || !tel || !email || !cep || !endereco || !numero) {
-    return alert("Atenção! Todos os dados são obrigatórios.");
+    return alert("Atenção! Todos os dados com * são obrigatórios.");
   }
 
   if (!email.includes("@")) {
     return alert("Por favor, insira um e-mail válido!");
   }
 
-  const novo = { nome, cpf, tel, email, cep, endereco, numero };
-  db.salvarCliente(novo);
-  state.cliente = novo;
-  iniciarCompra();
+  const btn = document.querySelector('button[onclick="salvarCadastro()"]');
+  const span1 = btn.querySelector('span');
+  const textoOrig = span1.innerText;
+  span1.innerText = "Salvando...";
+  btn.disabled = true;
+
+  const novoCliente = {
+    nome,
+    cpf: cpfLimpo,
+    telefone: tel,
+    email,
+    cep,
+    endereco,
+    numero
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('clientes')
+      .insert([novoCliente])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao salvar cadastro. Verifique se o CPF já existe.");
+      return;
+    }
+
+    state.cliente = data;
+    sessionStorage.removeItem('cpfEmCadastro');
+    salvarSessao();
+    window.location.href = 'produtos.html';
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro de conexão.");
+  } finally {
+    span1.innerText = textoOrig;
+    btn.disabled = false;
+  }
 }
 
-function iniciarCompra() {
-  document.getElementById("display-cliente-nome").innerText =
-    `Olá, ${state.cliente.nome.split(" ")[0]}!`;
-  document.getElementById("search-catalogo").value = "";
-  renderizarCatalogo();
-  navegarPara("screen-produtos");
+// ==========================================
+// TELA PRODUTOS
+// ==========================================
+
+async function carregarProdutosDoBanco() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('produtos')
+      .select('*')
+      .eq('ativo', true)
+      .order('nome');
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao carregar catálogo.");
+      return;
+    }
+
+    catalogoProdutos = data;
+
+    const loading = document.getElementById('loading-produtos');
+    if (loading) loading.classList.add('hidden');
+
+    const grid = document.getElementById('grid-catalogo');
+    if (grid) {
+      grid.classList.remove('hidden');
+      renderizarCatalogo();
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// --- ATUALIZADO: Passamos a receber o 'event' ---
 function alterarQuantidade(id, delta, event = null) {
   const index = state.carrinho.findIndex((x) => x.id === id);
 
@@ -133,8 +247,6 @@ function alterarQuantidade(id, delta, event = null) {
     if (delta > 0) {
       const p = catalogoProdutos.find((x) => x.id === id);
       state.carrinho.push({ ...p, qtd: 1, total: p.preco });
-
-      // DISPARA A ANIMAÇÃO AQUI (Se foi uma adição e temos o evento do clique)
       if (event) animarParaCarrinho(id, event);
     }
   } else {
@@ -148,24 +260,44 @@ function alterarQuantidade(id, delta, event = null) {
     } else {
       item.qtd = novaQtd;
       item.total = item.qtd * item.preco;
-
-      // DISPARA A ANIMAÇÃO AQUI TAMBÉM (Se o cara apertou no "+" de novo)
       if (delta > 0 && event) animarParaCarrinho(id, event);
     }
   }
 
+  salvarSessao();
   atualizarCarrinhoUI();
   renderizarCatalogo(document.getElementById("search-catalogo").value);
 }
 
+function alterarQuantidadeManual(id, valor) {
+  const novaQtd = parseInt(valor, 10);
+  const index = state.carrinho.findIndex((x) => x.id === id);
+
+  if (index !== -1) {
+    const item = state.carrinho[index];
+    if (isNaN(novaQtd) || novaQtd <= 0) {
+      if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
+        state.carrinho.splice(index, 1);
+      }
+    } else {
+      item.qtd = novaQtd;
+      item.total = item.qtd * item.preco;
+    }
+    salvarSessao();
+    atualizarCarrinhoUI();
+    renderizarCatalogo(document.getElementById("search-catalogo").value);
+  }
+}
+
 function renderizarCatalogo(filtro = "") {
   const grid = document.getElementById("grid-catalogo");
+  if (!grid) return;
   grid.innerHTML = "";
 
   const filtrados = catalogoProdutos.filter(
     (p) =>
       p.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-      p.desc.toLowerCase().includes(filtro.toLowerCase()),
+      (p.descricao && p.descricao.toLowerCase().includes(filtro.toLowerCase())),
   );
 
   if (filtrados.length === 0) {
@@ -200,13 +332,10 @@ function renderizarCatalogo(filtro = "") {
     } else {
       controlesHTML = `
         <button onclick="alterarQuantidade(${p.id}, 1, event)" class="relative bg-blue-900 text-white p-3 rounded-xl hover:bg-blue-800 transition-all hover:scale-105 shadow-md group">
-          
           <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-          
           <span class="absolute -bottom-1 -right-1 bg-white text-blue-900 rounded-full flex items-center justify-center w-4 h-4 shadow-sm group-hover:bg-blue-100 transition-colors">
             <i data-lucide="plus" class="w-3 h-3 stroke-[3px]"></i>
           </span>
-          
         </button>
       `;
     }
@@ -214,11 +343,11 @@ function renderizarCatalogo(filtro = "") {
     grid.innerHTML += `
       <div class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group">
         <div class="h-40 overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
-          <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply">
+          <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply">
         </div>
         <div class="p-5">
           <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
-          <p class="text-[10px] text-slate-500 uppercase font-bold mb-4">${p.desc}</p>
+          <p class="text-[10px] text-slate-500 uppercase font-bold mb-4">${p.descricao || ''}</p>
           <div class="flex justify-between items-center h-10">
             <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
@@ -236,218 +365,72 @@ function filtrarCatalogo(v) {
 
 function atualizarCarrinhoUI() {
   state.totalCarrinho = 0;
-  let totalQuantidadeItens = 0; // Para contar quantos itens no total
+  let totalQuantidadeItens = 0;
 
   state.carrinho.forEach((item) => {
     state.totalCarrinho += item.total;
     totalQuantidadeItens += item.qtd;
   });
 
-  // Atualiza o valor monetário lá no topo
-  document.getElementById("cart-total-rodape").innerText =
-    state.totalCarrinho.toFixed(2);
+  const rodape = document.getElementById("cart-total-rodape");
+  if (rodape) rodape.innerText = state.totalCarrinho.toFixed(2);
 
-  // Atualiza a bolinha vermelha (badge)
   const badge = document.getElementById("cart-badge");
-  if (totalQuantidadeItens > 0) {
-    badge.innerText = totalQuantidadeItens;
-    badge.classList.remove("hidden");
-  } else {
-    badge.classList.add("hidden");
+  if (badge) {
+    if (totalQuantidadeItens > 0) {
+      badge.innerText = totalQuantidadeItens;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
   }
 }
 
-function removerItem(idx) {
-  state.carrinho.splice(idx, 1);
-  atualizarCarrinhoUI();
-  renderizarCatalogo(document.getElementById("search-catalogo").value);
-}
-
-function irParaPagamento() {
-  // Trava de segurança: Verifica se o carrinho está zerado
-  if (state.carrinho.length === 0) {
-    alert("Atenção! Seu carrinho está vazio. Adicione produtos para continuar.");
-    return; 
-  }
-  
-  // Agora ele desenha o resumo e joga o cliente pra tela nova!
-  renderizarResumoCompleto(); 
-  navegarPara("screen-resumo");
-}
-
-function selecionarPagamento(metodo) {
-  state.metodoPagamentoSelecionado = metodo;
-
-  document.querySelectorAll(".btn-pagamento").forEach((b) => {
-    b.classList.remove("border-blue-900", "bg-blue-50");
-    b.classList.add("border-slate-300", "bg-white");
-  });
-
-  let idBotao = "";
-  if (metodo === "PIX") idBotao = "btn-pag-pix";
-  if (metodo === "Cartão de Crédito") idBotao = "btn-pag-credito";
-  if (metodo === "Cartão de Débito") idBotao = "btn-pag-debito";
-
-  const btnSelecionado = document.getElementById(idBotao);
-  if (btnSelecionado) {
-    btnSelecionado.classList.remove("border-slate-300", "bg-white");
-    btnSelecionado.classList.add("border-blue-900", "bg-blue-50");
-  }
-
-  document.getElementById("btn-finalizar-venda-novo").disabled = false;
-}
-
-function atualizarResumoPedidoUI() {
-  const totalText = state.totalCarrinho.toFixed(2);
-  document.getElementById("pag-texto-total").innerText = `R$ ${totalText}`;
-  document.getElementById("resumo-subtotal").innerText = `R$ ${totalText}`;
-  document.getElementById("resumo-total-final").innerText = `R$ ${totalText}`;
-
-  const container = document.getElementById("resumo-itens");
-  container.innerHTML = "";
-
-  state.carrinho.forEach((item) => {
-    container.innerHTML += `
-      <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-        <div class="w-12 h-12 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-100">
-           <img src="${item.img}" class="w-full h-full object-cover mix-blend-multiply">
-        </div>
-        <div class="flex-1">
-          <p class="text-sm font-bold text-blue-900 leading-tight mb-1">${item.qtd}x ${item.nome}</p>
-          <p class="text-[10px] text-slate-500">Vendido por <span class="font-bold text-slate-600">Paraferro</span></p>
-        </div>
-        <span class="font-black text-blue-900 text-sm whitespace-nowrap">R$ ${item.total.toFixed(2)}</span>
-      </div>
-    `;
-  });
-}
-
-function finalizarVenda() {
-  document.getElementById("nota-cliente").innerText =
-    state.cliente.nome.toUpperCase();
-  document.getElementById("nota-cpf").innerText = state.cliente.cpf;
-  document.getElementById("nota-data").innerText = new Date().toLocaleString();
-
-  const tbody = document.getElementById("nota-itens");
-  tbody.innerHTML = "";
-  state.carrinho.forEach((item) => {
-    tbody.innerHTML += `<tr><td class="py-1 pr-2 text-slate-700">${item.nome} (${item.qtd}x)</td><td class="text-right font-bold whitespace-nowrap text-blue-900">R$ ${item.total.toFixed(2)}</td></tr>`;
-  });
-
-  document.getElementById("nota-total").innerText =
-    state.totalCarrinho.toFixed(2);
-
-  const formas = document.getElementById("nota-formas-pagamento");
-  formas.innerHTML = `<strong>FORMA DE PAGAMENTO:</strong><br>${state.metodoPagamentoSelecionado.toUpperCase()}: R$ ${state.totalCarrinho.toFixed(2)}<br>`;
-
-  const areaPix = document.getElementById("area-pix-final");
-  if (state.metodoPagamentoSelecionado === "PIX") {
-    areaPix.classList.remove("hidden");
-    document.getElementById("qrcode").innerHTML = "";
-    new QRCode(document.getElementById("qrcode"), {
-      text: "PIX-PAYLOAD-SIMULADO-PARA-O-JOTTA",
-      width: 140,
-      height: 140,
-      colorDark: "#1e3a8a",
-      colorLight: "#f8fafc",
-    });
-  } else {
-    areaPix.classList.add("hidden");
-  }
-
-  navegarPara("screen-nota");
-}
-
-function reiniciarTotem() {
-  state = {
-    cliente: null,
-    carrinho: [],
-    totalCarrinho: 0,
-    metodoPagamentoSelecionado: null,
-  };
-  document.querySelectorAll("input").forEach((i) => (i.value = ""));
-  atualizarCarrinhoUI();
-  renderizarCatalogo();
-  navegarPara("screen-cpf");
-}
-
-// Início
-navegarPara("screen-cpf");
-
-// --- NOVA FUNÇÃO: Animação do item voando para o carrinho ---
 function animarParaCarrinho(id, event) {
-  // Se não tiver o evento de clique, não faz a animação
   if (!event) return;
-
   const produto = catalogoProdutos.find((p) => p.id === id);
   const cartBtn = document.getElementById("btn-carrinho-topo");
 
-  // 1. Cria a imagem "fantasma" que vai voar
   const flyingImg = document.createElement("img");
-  flyingImg.src = produto.img;
-  // Usamos a classe que criamos lá no CSS
-  flyingImg.className =
-    "item-voador w-16 h-16 border-2 border-blue-900 bg-white";
-
-  // 2. Ponto de Partida: Onde o usuário clicou (pegamos as coordenadas do mouse)
+  flyingImg.src = produto.imagem_url;
+  flyingImg.className = "item-voador w-16 h-16 border-2 border-blue-900 bg-white";
   flyingImg.style.left = `${event.clientX - 32}px`;
   flyingImg.style.top = `${event.clientY - 32}px`;
-
-  // Joga a imagem na tela
   document.body.appendChild(flyingImg);
 
-  // 3. Destino: Pega a posição exata do botão do carrinho lá no topo
   const rect = cartBtn.getBoundingClientRect();
 
-  // Pequeno delay pro navegador registrar a posição inicial antes de mover
   setTimeout(() => {
-    // Calcula o centro do botão do carrinho
     flyingImg.style.left = `${rect.left + rect.width / 2 - 10}px`;
     flyingImg.style.top = `${rect.top + rect.height / 2 - 10}px`;
-
-    // Encolhe a imagem enquanto ela voa
     flyingImg.style.width = "10px";
     flyingImg.style.height = "10px";
     flyingImg.style.opacity = "0.3";
   }, 50);
 
-  // 4. Limpeza: Depois de 800ms (tempo da animação do CSS), apaga a imagem fantasma
   setTimeout(() => {
     flyingImg.remove();
-    // Faz o botão do carrinho dar um "pulinho" pra mostrar que recebeu o item
     cartBtn.classList.add("scale-110");
     setTimeout(() => cartBtn.classList.remove("scale-110"), 200);
   }, 800);
 }
-// --- NOVA FUNÇÃO: Atualiza a quantidade quando o cliente digita o número ---
-function alterarQuantidadeManual(id, valor) {
-  // Transforma o texto digitado em um número inteiro
-  const novaQtd = parseInt(valor, 10);
-  const index = state.carrinho.findIndex((x) => x.id === id);
 
-  if (index !== -1) {
-    const item = state.carrinho[index];
-
-    // Se o cliente apagar tudo, digitar 0 ou letras, perguntamos se quer excluir
-    if (isNaN(novaQtd) || novaQtd <= 0) {
-      if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
-        state.carrinho.splice(index, 1);
-      }
-    } else {
-      // Se for um número válido, atualiza a quantidade e o total do item
-      item.qtd = novaQtd;
-      item.total = item.qtd * item.preco;
-    }
-
-    // Atualiza a tela com os novos valores
-    atualizarCarrinhoUI();
-    renderizarCatalogo(document.getElementById("search-catalogo").value);
+function irParaPagamento() {
+  if (state.carrinho.length === 0) {
+    alert("Atenção! Seu carrinho está vazio. Adicione produtos para continuar.");
+    return;
   }
+  salvarSessao();
+  window.location.href = "resumo.html";
 }
-// --- NOVAS FUNÇÕES DO RESUMO DO PEDIDO ---
+
+// ==========================================
+// TELA RESUMO
+// ==========================================
 
 function renderizarResumoCompleto() {
   const container = document.getElementById("lista-resumo-completo");
+  if (!container) return;
   container.innerHTML = "";
   let total = 0;
 
@@ -455,7 +438,7 @@ function renderizarResumoCompleto() {
     total += item.total;
     container.innerHTML += `
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-        <img src="${item.img}" class="w-20 h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
+        <img src="${item.imagem_url}" class="w-20 h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
         
         <div class="flex-1">
           <h4 class="font-bold text-blue-900 leading-tight">${item.nome}</h4>
@@ -482,8 +465,20 @@ function renderizarResumoCompleto() {
 }
 
 function alterarQtdResumo(id, delta) {
-  // Reutiliza sua lógica de alterar quantidade e redesenha o resumo
-  alterarQuantidade(id, delta);
+  const index = state.carrinho.findIndex((x) => x.id === id);
+  if (index !== -1) {
+    const item = state.carrinho[index];
+    const novaQtd = item.qtd + delta;
+    if (novaQtd === 0) {
+      if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
+        state.carrinho.splice(index, 1);
+      }
+    } else {
+      item.qtd = novaQtd;
+      item.total = item.qtd * item.preco;
+    }
+  }
+  salvarSessao();
   renderizarResumoCompleto();
 }
 
@@ -491,25 +486,156 @@ function removerItemResumo(idx) {
   const nomeItem = state.carrinho[idx].nome;
   if (confirm(`Deseja realmente remover "${nomeItem}" do seu pedido?`)) {
     state.carrinho.splice(idx, 1);
+    salvarSessao();
     if (state.carrinho.length === 0) {
-      navegarPara("screen-produtos");
+      window.location.href = "produtos.html";
     } else {
       renderizarResumoCompleto();
     }
-    atualizarCarrinhoUI();
   }
 }
 
 function irParaPagamentoReal() {
   state.metodoPagamentoSelecionado = null;
-  document.getElementById("btn-finalizar-venda-novo").disabled = true;
-  
-  // Limpa os botões de pagamento para não ficarem selecionados do pedido anterior
+  salvarSessao();
+  window.location.href = "pagamento.html";
+}
+
+// ==========================================
+// TELA PAGAMENTO
+// ==========================================
+
+function selecionarPagamento(metodo) {
+  state.metodoPagamentoSelecionado = metodo;
+  salvarSessao();
+
   document.querySelectorAll(".btn-pagamento").forEach((b) => {
     b.classList.remove("border-blue-900", "bg-blue-50");
     b.classList.add("border-slate-300", "bg-white");
   });
-  
-  atualizarResumoPedidoUI(); 
-  navegarPara("screen-pagamento");
+
+  let idBotao = "";
+  if (metodo === "PIX") idBotao = "btn-pag-pix";
+  if (metodo === "Cartão de Crédito") idBotao = "btn-pag-credito";
+  if (metodo === "Cartão de Débito") idBotao = "btn-pag-debito";
+
+  const btnSelecionado = document.getElementById(idBotao);
+  if (btnSelecionado) {
+    btnSelecionado.classList.remove("border-slate-300", "bg-white");
+    btnSelecionado.classList.add("border-blue-900", "bg-blue-50");
+  }
+
+  document.getElementById("btn-finalizar-venda-novo").disabled = false;
+}
+
+function atualizarResumoPedidoUI() {
+  if (!document.getElementById("pag-texto-total")) return;
+  const totalText = state.totalCarrinho.toFixed(2);
+  document.getElementById("pag-texto-total").innerText = `R$ ${totalText}`;
+  document.getElementById("resumo-subtotal").innerText = `R$ ${totalText}`;
+  document.getElementById("resumo-total-final").innerText = `R$ ${totalText}`;
+
+  const container = document.getElementById("resumo-itens");
+  container.innerHTML = "";
+
+  state.carrinho.forEach((item) => {
+    container.innerHTML += `
+      <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <div class="w-12 h-12 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-100">
+           <img src="${item.imagem_url}" class="w-full h-full object-cover mix-blend-multiply">
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-bold text-blue-900 leading-tight mb-1">${item.qtd}x ${item.nome}</p>
+          <p class="text-[10px] text-slate-500">Vendido por <span class="font-bold text-slate-600">Paraferro</span></p>
+        </div>
+        <span class="font-black text-blue-900 text-sm whitespace-nowrap">R$ ${item.total.toFixed(2)}</span>
+      </div>
+    `;
+  });
+}
+
+async function finalizarVenda() {
+  const btn = document.getElementById("btn-finalizar-venda-novo");
+  const span = document.getElementById("btn-finalizar-texto");
+  const textoOrig = span.innerText;
+  span.innerText = "PROCESSANDO...";
+  btn.disabled = true;
+
+  const pedido = {
+    cliente_id: state.cliente.id,
+    total: state.totalCarrinho,
+    metodo_pagamento: state.metodoPagamentoSelecionado,
+    itens_comprados: state.carrinho
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('pedidos')
+      .insert([pedido]);
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao registrar pedido.");
+      btn.disabled = false;
+      span.innerText = textoOrig;
+      return;
+    }
+
+    // Pedido criado com sucesso, limpar carrinho, manter cliente e ir pra nota
+    window.location.href = "nota.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro detalhado: " + err.message);
+    btn.disabled = false;
+    span.innerText = textoOrig;
+  }
+}
+
+// ==========================================
+// TELA NOTA
+// ==========================================
+
+function gerarNotaVisual() {
+  if (!document.getElementById("nota-cliente")) return;
+  document.getElementById("nota-cliente").innerText = state.cliente.nome.toUpperCase();
+  document.getElementById("nota-cpf").innerText = state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  document.getElementById("nota-data").innerText = new Date().toLocaleString();
+
+  const tbody = document.getElementById("nota-itens");
+  tbody.innerHTML = "";
+  state.carrinho.forEach((item) => {
+    tbody.innerHTML += `<tr><td class="py-1 pr-2 text-slate-700">${item.nome} (${item.qtd}x)</td><td class="text-right font-bold whitespace-nowrap text-blue-900">R$ ${item.total.toFixed(2)}</td></tr>`;
+  });
+
+  document.getElementById("nota-total").innerText = state.totalCarrinho.toFixed(2);
+
+  const formas = document.getElementById("nota-formas-pagamento");
+  formas.innerHTML = `<strong>FORMA DE PAGAMENTO:</strong><br>${(state.metodoPagamentoSelecionado || "").toUpperCase()}: R$ ${state.totalCarrinho.toFixed(2)}<br>`;
+
+  const areaPix = document.getElementById("area-pix-final");
+  if (state.metodoPagamentoSelecionado === "PIX") {
+    areaPix.classList.remove("hidden");
+    document.getElementById("qrcode").innerHTML = "";
+    new QRCode(document.getElementById("qrcode"), {
+      text: "PIX-PAYLOAD-SIMULADO-PARA-O-JOTTA",
+      width: 140,
+      height: 140,
+      colorDark: "#1e3a8a",
+      colorLight: "#f8fafc",
+    });
+  } else {
+    areaPix.classList.add("hidden");
+  }
+
+  // Limpar o carrinho e método de pagamento (a venda já ocorreu)
+  state.carrinho = [];
+  state.totalCarrinho = 0;
+  state.metodoPagamentoSelecionado = null;
+  salvarSessao();
+}
+
+function reiniciarTotem() {
+  sessionStorage.clear();
+  window.location.href = "index.html";
 }
