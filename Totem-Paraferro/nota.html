@@ -1,3 +1,11 @@
+<!-- 
+  📄 ARQUIVO: nota.html
+  🧠 PROPÓSITO: Tela de sucesso e Recibo (Cupom).
+  
+  A venda já foi realizada (banco de dados já foi atualizado).
+  Aqui é puramente visual. Mostramos a "NFC-e" na tela com a opção 
+  do cliente imprimir. Se o pagamento foi PIX, mostramos o QR Code.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -8,7 +16,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+    
+    <!-- Biblioteca específica desta tela: qrcode.js. 
+         Usada para desenhar o quadradinho do PIX caso seja a forma escolhida -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css" />
@@ -17,11 +29,18 @@
     <div class="flex h-full w-full bg-slate-50 overflow-hidden">
       <div class="flex-1 relative bg-slate-50 overflow-y-auto" id="main-content">
         <section id="screen-nota" class="h-full flex flex-col justify-center items-center p-6 bg-slate-100 fade-in">
+          
+          <!-- ========================================== -->
+          <!-- BLOCO: O CUPOM FISCAL (Visual)             -->
+          <!-- ========================================== -->
+          <!-- O id "printable-area" ajuda caso a gente precise criar um código de impressão específico -->
           <div
             id="printable-area"
             class="bg-white p-8 w-full max-w-sm shadow-2xl rounded-3xl text-sm font-mono relative overflow-hidden text-slate-800 border border-slate-200"
           >
+            <!-- Faixinha azul superior de design -->
             <div class="absolute top-0 left-0 w-full h-2 bg-blue-900"></div>
+            
             <div class="text-center mb-8">
               <h2 class="text-2xl font-black uppercase tracking-tighter text-blue-900">
                 PARAFERRO
@@ -32,6 +51,7 @@
               </p>
             </div>
 
+            <!-- Dados do cliente -->
             <div class="border-b border-dashed border-slate-300 pb-4 mb-4">
               <p class="text-xs">
                 <strong>CLIENTE:</strong> <span id="nota-cliente">...</span>
@@ -41,6 +61,7 @@
               </p>
             </div>
 
+            <!-- Tabela onde o app.js vai injetar os itens comprados (<tr><td>...</td></tr>) -->
             <table class="w-full mb-6">
               <tbody id="nota-itens" class="text-xs"></tbody>
             </table>
@@ -52,8 +73,10 @@
               </div>
             </div>
 
+            <!-- Forma de pagamento escolhida -->
             <div id="nota-formas-pagamento" class="text-[10px] text-slate-500 mb-8 leading-relaxed"></div>
 
+            <!-- 💡 ÁREA DO PIX: O JS decide se exibe (remove o "hidden") ou não com base na escolha anterior -->
             <div id="area-pix-final" class="hidden text-center bg-slate-50 p-6 rounded-2xl mb-4 border border-slate-200">
               <p class="font-black text-xs mb-3 text-blue-900">PAGUE COM PIX</p>
               <div id="qrcode" class="flex justify-center mb-2"></div>
@@ -64,6 +87,10 @@
             </p>
           </div>
 
+          <!-- ========================================== -->
+          <!-- BLOCO: AÇÕES FINAIS                        -->
+          <!-- ========================================== -->
+          <!-- A classe 'no-print' garante que se mandar imprimir, esses botões não saiam no papel -->
           <div class="mt-8 flex gap-4 no-print">
             <button
               onclick="window.print()"
@@ -87,6 +114,7 @@
       lucide.createIcons();
       window.onload = function() {
           verificarSessaoCliente();
+          // Preenche os dados visuais baseados na sessão ANTES dela ser zerada
           gerarNotaVisual();
       };
     </script>

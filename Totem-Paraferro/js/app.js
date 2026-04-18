@@ -1,14 +1,29 @@
-// Estado global no escopo da página atual
+/**
+ * 📄 ARQUIVO: app.js
+ * 🧠 PROPÓSITO: Arquivo principal de lógica do Totem (Cérebro da aplicação)
+ * 
+ * É aqui que a mágica acontece. Este arquivo controla o fluxo de dados (Data Flow):
+ * Entrada do Usuário (ex: digita CPF) -> Processamento (validação/formatação) -> Ação (salvar no banco/mudar de tela).
+ */
+
+// ==========================================
+// 📦 VARIÁVEIS GLOBAIS DE ESTADO (State)
+// ==========================================
+// 'state' é como uma memória temporária do totem. Tudo o que o cliente faz
+// fica salvo aqui enquanto ele navega. Se a página recarregar e nós não
+// salvarmos isso no 'sessionStorage', a gente perde tudo!
 let state = {
-  cliente: null,
-  carrinho: [],
-  totalCarrinho: 0,
-  metodoPagamentoSelecionado: null,
+  cliente: null, // Guarda os dados do cliente (nome, cpf, etc)
+  carrinho: [], // Lista de produtos que ele colocou no carrinho
+  totalCarrinho: 0, // Valor total da compra em R$
+  metodoPagamentoSelecionado: null, // Ex: 'PIX' ou 'Cartão de Crédito'
 };
 
+// Guarda a lista completa de produtos que vem do banco de dados (Supabase)
 let catalogoProdutos = [];
 
-// Armazena dados extras de endereço que não aparecem no formulário
+// Armazena dados extras de endereço que o ViaCEP retorna, mas que não 
+// precisam aparecer na tela para o usuário (bairro, cidade, estado)
 let enderecoExtra = {
   bairro: "",
   cidade: "",
@@ -16,26 +31,43 @@ let enderecoExtra = {
 };
 
 // ==========================================
-// FUNÇÕES DE SESSÃO E INICIALIZAÇÃO
+// 💾 FUNÇÕES DE SESSÃO E INICIALIZAÇÃO
 // ==========================================
 
+/**
+ * 🔹 salvarSessao()
+ * Transforma o nosso objeto 'state' em texto (JSON) e guarda na memória do navegador.
+ * Isso permite que, ao mudar de uma tela (ex: de produtos para pagamento),
+ * a gente não perca o carrinho e o nome do cliente.
+ */
 function salvarSessao() {
   sessionStorage.setItem('totemState', JSON.stringify(state));
 }
 
+/**
+ * 🔹 carregarSessao()
+ * Pega o texto (JSON) salvo na memória do navegador e transforma de volta
+ * no objeto 'state'. Usado toda vez que uma nova tela carrega.
+ */
 function carregarSessao() {
   const saved = sessionStorage.getItem('totemState');
   if (saved) {
-    state = JSON.parse(saved);
+    state = JSON.parse(saved); // JSON.parse converte texto em objeto JS
   }
 }
 
+/**
+ * 🔹 verificarSessaoCliente()
+ * Função de segurança. Impede que alguém acesse a tela de produtos direto
+ * pelo link sem ter colocado o CPF antes.
+ */
 function verificarSessaoCliente() {
   carregarSessao();
   if (!state.cliente) {
-    // Se não tem cliente na sessão, manda pro início
+    // Se não tem cliente logado na sessão, expulsa para a tela inicial
     window.location.href = 'index.html';
   } else {
+    // Se tem cliente, atualiza a tela para mostrar o nome dele
     const displayNome = document.getElementById("display-cliente-nome");
     if (displayNome) {
       displayNome.innerText = `Olá, ${state.cliente.nome.split(" ")[0]}!`;
@@ -43,56 +75,73 @@ function verificarSessaoCliente() {
   }
 }
 
+/**
+ * 🔹 carregarCarrinhoDaSessao()
+ * Atualiza o número de itens no botão do carrinho no topo da tela.
+ */
 function carregarCarrinhoDaSessao() {
-  atualizarCarrinhoUI();
+  atualizarCarrinhoUI(); // UI = User Interface (Interface do Usuário)
   if (document.getElementById('grid-catalogo')) {
     renderizarCatalogo();
   }
 }
 
 // ==========================================
-// MASCARAS E VALIDAÇÕES
+// 🎭 MASCARAS E VALIDAÇÕES (Formatadores)
 // ==========================================
+// 💡 DICA: Máscaras pegam o que o usuário digita e colocam num formato bonitinho
+// Exemplo: 12345678900 vira 123.456.789-00
 
 function mascaraCPF(i) {
-  let v = i.value.replace(/\D/g, "");
+  let v = i.value.replace(/\D/g, ""); // Remove tudo que NÃO for número (letra, espaço)
   if (v.length > 11) v = v.slice(0, 11);
+  // Coloca os pontos e o traço na hora certa
   i.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
 function mascaraCEP(i) {
   let v = i.value.replace(/\D/g, "");
   if (v.length > 8) v = v.slice(0, 8);
-  i.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
+  i.value = v.replace(/^(\d{5})(\d)/, "$1-$2"); // Formato: 00000-000
   
+  // ⚡ INTEGRAÇÃO: Se o CEP tiver 8 números (completo), busca automaticamente!
   if (v.length === 8) {
     buscarCEP(v);
   }
 }
 
+/**
+ * 🌐 buscarCEP(cep)
+ * Integração com a API pública do ViaCEP.
+ * Funciona de forma "Assíncrona" (async/await) porque a requisição via internet 
+ * pode demorar alguns segundos, e o código precisa "esperar" (await) a resposta.
+ */
 async function buscarCEP(cep) {
   try {
+    // 1. Faz a requisição na internet
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const data = await response.json();
+    const data = await response.json(); // 2. Converte a resposta em um objeto JS
 
+    // Se o CEP for inventado (ex: 99999-999), a API retorna {erro: true}
     if (data.erro) {
       alert("CEP não encontrado.");
       return;
     }
 
+    // 3. Captura os inputs na tela
     const inputEnd = document.getElementById("cad-end");
     const inputNum = document.getElementById("cad-num");
 
     if (inputEnd) {
-      // Preenche apenas logradouro no formulário
+      // Preenche o campo de rua (logradouro) na tela
       inputEnd.value = data.logradouro || "";
       
-      // Armazena internamente os outros dados
+      // Armazena no "fundo" (background) os dados extras para enviar ao banco depois
       enderecoExtra.bairro = data.bairro || "";
       enderecoExtra.cidade = data.localidade || "";
       enderecoExtra.estado = data.uf || "";
       
-      // Move o foco para o campo de número
+      // Move o cursor piscante para o campo de número automaticamente. UX Perfeita!
       if (inputNum) {
         inputNum.focus();
       }
@@ -116,6 +165,7 @@ function mascaraTel(i) {
   }
 }
 
+// 🛡️ Validação matemática de CPF (Evita CPFs falsos como 123.456.789-00)
 function isCPFValido(cpf) {
   cpf = cpf.replace(/\D/g, '');
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -133,62 +183,79 @@ function isCPFValido(cpf) {
 }
 
 // ==========================================
-// TELA CPF
+// 🏠 TELA 1: CPF (index.html)
 // ==========================================
 
+/**
+ * 🔹 verificarCPF()
+ * O usuário clica em "Continuar" após digitar o CPF.
+ * Aqui nós consultamos o banco Supabase para ver se ele já existe.
+ */
 async function verificarCPF() {
   const input = document.getElementById("input-cpf-check");
-  const btn = document.querySelector('button[onclick="verificarCPF()"]'); // Seleção corrigida
+  const btn = document.querySelector('button[onclick="verificarCPF()"]'); 
   const cpfFormatado = input.value;
-  const cpfLimpo = cpfFormatado.replace(/\D/g, "");
+  const cpfLimpo = cpfFormatado.replace(/\D/g, ""); // Tiramos pontos e traços pro banco
 
+  // 1. Valida se o número é real
   if (!isCPFValido(cpfLimpo)) {
     return alert("CPF inválido! Verifique o número digitado.");
   }
 
-  // Loading state
+  // 2. Efeito visual: Troca o texto do botão para dar feedback visual de carregamento
   const textoOriginal = btn.innerText;
   btn.innerText = "Buscando...";
   btn.disabled = true;
 
   try {
-    // Busca no Supabase
+    // 3. ⚡ BUSCA NO SUPABASE: Procura na tabela 'clientes' um registro com esse 'cpf'
+    // A função '.single()' diz que queremos apenas UM resultado.
     const { data, error } = await supabaseClient
       .from('clientes')
       .select('*')
       .eq('cpf', cpfLimpo)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = Não encontrou (o que é normal se for novo)
+    // Código PGRST116 significa "Não encontrei nenhuma linha".
+    // Se deu outro erro que não seja esse, aí sim é um problema real.
+    if (error && error.code !== 'PGRST116') { 
       console.error(error);
       alert("Erro ao consultar banco de dados.");
       return;
     }
 
     if (data) {
-      // Cliente existe
-      state.cliente = data;
-      salvarSessao();
-      window.location.href = 'produtos.html';
+      // ✅ RESULTADO A: O cliente já está cadastrado no banco.
+      state.cliente = data; // Salva o cliente logado no 'state'
+      salvarSessao(); // Guarda no navegador
+      window.location.href = 'produtos.html'; // Pula direto pras compras
     } else {
-      // Cliente novo
+      // ❌ RESULTADO B: Cliente não encontrado (é novo).
+      // Salva só o CPF temporariamente pra gente não fazer ele digitar de novo na tela de cadastro.
       sessionStorage.setItem('cpfEmCadastro', cpfFormatado);
-      window.location.href = 'cadastro.html';
+      window.location.href = 'cadastro.html'; // Redireciona pro cadastro
     }
   } catch (err) {
     console.error(err);
     alert("Erro detalhado: " + err.message + "\n(Aperte F12 para mais info)");
   } finally {
+    // Volta o botão ao normal, caso tenha dado algum erro ou alert
     btn.innerText = textoOriginal;
     btn.disabled = false;
   }
 }
 
 // ==========================================
-// TELA CADASTRO
+// 📝 TELA 2: CADASTRO (cadastro.html)
 // ==========================================
 
+/**
+ * 🔹 salvarCadastro()
+ * Disparado ao clicar em "Confirmar dados".
+ * Pega os valores da tela e insere um novo cliente na tabela do Supabase.
+ */
 async function salvarCadastro() {
+  // Coletando todos os valores digitados (.value) e tirando espaços desnecessários (.trim())
   const nome = document.getElementById("cad-nome").value.trim();
   const cpfForm = document.getElementById("cad-cpf").value.trim();
   const cpfLimpo = cpfForm.replace(/\D/g, "");
@@ -198,20 +265,25 @@ async function salvarCadastro() {
   const endereco = document.getElementById("cad-end").value.trim();
   const numero = document.getElementById("cad-num").value.trim();
 
+  // Validação simples: Tem algum vazio?
   if (!nome || !tel || !email || !cep || !endereco || !numero) {
     return alert("Atenção! Todos os dados com * são obrigatórios.");
   }
 
+  // Validação simples de email
   if (!email.includes("@")) {
     return alert("Por favor, insira um e-mail válido!");
   }
 
+  // Feedback visual (desativa botão)
   const btn = document.querySelector('button[onclick="salvarCadastro()"]');
   const span1 = btn.querySelector('span');
   const textoOrig = span1.innerText;
   span1.innerText = "Salvando...";
   btn.disabled = true;
 
+  // Montamos um "Objeto" JSON que será a nova linha lá no banco de dados.
+  // IMPORTANTE: As chaves (nome, cpf, email) devem bater com as colunas lá do Supabase.
   const novoCliente = {
     nome,
     cpf: cpfLimpo,
@@ -220,12 +292,14 @@ async function salvarCadastro() {
     cep,
     endereco,
     numero,
-    bairro: enderecoExtra.bairro,
+    bairro: enderecoExtra.bairro, // Vem da nossa variável global (ViaCEP)
     cidade: enderecoExtra.cidade,
     estado: enderecoExtra.estado
   };
 
   try {
+    // ⚡ INSERÇÃO NO SUPABASE: Insere o array [novoCliente] na tabela 'clientes'.
+    // O '.select().single()' diz: "Insere isso e já me retorna como ficou salvo".
     const { data, error } = await supabaseClient
       .from('clientes')
       .insert([novoCliente])
@@ -238,10 +312,11 @@ async function salvarCadastro() {
       return;
     }
 
-    state.cliente = data;
-    sessionStorage.removeItem('cpfEmCadastro');
+    // Sucesso!
+    state.cliente = data; // Loga o usuário
+    sessionStorage.removeItem('cpfEmCadastro'); // Limpa a sujeira
     salvarSessao();
-    window.location.href = 'produtos.html';
+    window.location.href = 'produtos.html'; // Vai pras compras!
 
   } catch (err) {
     console.error(err);
@@ -253,11 +328,17 @@ async function salvarCadastro() {
 }
 
 // ==========================================
-// TELA PRODUTOS
+// 🛒 TELA 3: PRODUTOS (produtos.html)
 // ==========================================
 
+/**
+ * 🔹 carregarProdutosDoBanco()
+ * Chamado assim que a tela de produtos abre. Traz o catálogo vivo do banco.
+ */
 async function carregarProdutosDoBanco() {
   try {
+    // ⚡ BUSCA NO SUPABASE: Puxa todos os produtos onde a coluna 'ativo' é true.
+    // E já ordena de A a Z (.order('nome'))
     const { data, error } = await supabaseClient
       .from('produtos')
       .select('*')
@@ -270,11 +351,14 @@ async function carregarProdutosDoBanco() {
       return;
     }
 
+    // Guarda localmente na memória (cache) pra não ter que bater no banco a cada pesquisa
     catalogoProdutos = data;
 
+    // Remove o símbolo de "carregando..." girando da tela
     const loading = document.getElementById('loading-produtos');
     if (loading) loading.classList.add('hidden');
 
+    // Mostra o grid de fato e manda desenhar os produtos
     const grid = document.getElementById('grid-catalogo');
     if (grid) {
       grid.classList.remove('hidden');
@@ -286,35 +370,51 @@ async function carregarProdutosDoBanco() {
   }
 }
 
+/**
+ * 🔹 alterarQuantidade(id, delta, event)
+ * Função central do carrinho. Chamada ao clicar em [+] ou [-].
+ * 'delta' é quanto altera: +1 para somar, -1 para subtrair.
+ */
 function alterarQuantidade(id, delta, event = null) {
+  // Verifica se o produto já está na lista do carrinho
   const index = state.carrinho.findIndex((x) => x.id === id);
 
   if (index === -1) {
+    // Produto não está no carrinho
     if (delta > 0) {
+      // Pega os dados dele do catálogo geral
       const p = catalogoProdutos.find((x) => x.id === id);
+      // Cria uma cópia dele usando o "Spread Operator" (...) e adiciona qtd e total
       state.carrinho.push({ ...p, qtd: 1, total: p.preco });
-      if (event) animarParaCarrinho(id, event);
+      
+      if (event) animarParaCarrinho(id, event); // Faz a imagem voar
     }
   } else {
+    // Produto já está no carrinho, então só vamos alterar a quantidade
     const item = state.carrinho[index];
     const novaQtd = item.qtd + delta;
 
     if (novaQtd === 0) {
+      // Se chegou a zero, pergunta se quer excluir
       if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
-        state.carrinho.splice(index, 1);
+        state.carrinho.splice(index, 1); // Splice: arranca 1 elemento na posição 'index'
       }
     } else {
+      // Apenas atualiza
       item.qtd = novaQtd;
       item.total = item.qtd * item.preco;
       if (delta > 0 && event) animarParaCarrinho(id, event);
     }
   }
 
+  // Toda alteração precisa ser salva na sessão para não perdermos!
   salvarSessao();
-  atualizarCarrinhoUI();
+  atualizarCarrinhoUI(); // Atualiza valor no rodapé
+  // Redesenha a lista pra atualizar os botões de [+] e [-] de acordo com a nova quantidade
   renderizarCatalogo(document.getElementById("search-catalogo").value);
 }
 
+// Quando o cara quer digitar "100" para não ter que apertar "+" 100 vezes.
 function alterarQuantidadeManual(id, valor) {
   const novaQtd = parseInt(valor, 10);
   const index = state.carrinho.findIndex((x) => x.id === id);
@@ -335,11 +435,17 @@ function alterarQuantidadeManual(id, valor) {
   }
 }
 
+/**
+ * 🔹 renderizarCatalogo(filtro)
+ * Acessa o HTML e "injeta" os produtos (DOM Manipulation).
+ * Essa função roda toda vez que abrimos a tela, digitamos na busca ou mudamos uma quantidade.
+ */
 function renderizarCatalogo(filtro = "") {
   const grid = document.getElementById("grid-catalogo");
   if (!grid) return;
-  grid.innerHTML = "";
+  grid.innerHTML = ""; // Limpa tudo antes de desenhar de novo
 
+  // Aplica o filtro de busca no texto e no nome
   const filtrados = catalogoProdutos.filter(
     (p) =>
       p.nome.toLowerCase().includes(filtro.toLowerCase()) ||
@@ -351,10 +457,13 @@ function renderizarCatalogo(filtro = "") {
     return;
   }
 
+  // Passa item por item desenhando o HTML dele (Componentização manual)
   filtrados.forEach((p) => {
+    // Primeiro verificamos: esse produto já está no carrinho?
     const itemNoCarrinho = state.carrinho.find((x) => x.id === p.id);
     let controlesHTML = "";
 
+    // Se estiver, desenhamos um controle com [-] [numero] [+]
     if (itemNoCarrinho) {
       controlesHTML = `
         <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl overflow-hidden shadow-inner">
@@ -376,6 +485,7 @@ function renderizarCatalogo(filtro = "") {
         </div>
       `;
     } else {
+      // Se não, desenhamos o botão padrão de "Adicionar" com ícone de carrinho
       controlesHTML = `
         <button onclick="alterarQuantidade(${p.id}, 1, event)" class="relative bg-blue-900 text-white p-3 rounded-xl hover:bg-blue-800 transition-all hover:scale-105 shadow-md group">
           <i data-lucide="shopping-cart" class="w-6 h-6"></i>
@@ -386,6 +496,7 @@ function renderizarCatalogo(filtro = "") {
       `;
     }
 
+    // Por fim, injetamos (innerHTML) o HTML completo do Card (Caixinha do produto)
     grid.innerHTML += `
       <div class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group">
         <div class="h-40 overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
@@ -402,50 +513,57 @@ function renderizarCatalogo(filtro = "") {
       </div>
     `;
   });
-  lucide.createIcons();
+  lucide.createIcons(); // Recarrega os ícones da biblioteca Lucide para aparecerem nos botões novos
 }
 
+// Disparado quando digita algo na barra de pesquisa superior
 function filtrarCatalogo(v) {
   renderizarCatalogo(v);
 }
 
+// Atualiza o rodape (Total) e a bolinha vermelha no ícone de carrinho lá em cima
 function atualizarCarrinhoUI() {
   state.totalCarrinho = 0;
   let totalQuantidadeItens = 0;
 
+  // Varre o carrinho somando tudo
   state.carrinho.forEach((item) => {
     state.totalCarrinho += item.total;
     totalQuantidadeItens += item.qtd;
   });
 
   const rodape = document.getElementById("cart-total-rodape");
-  if (rodape) rodape.innerText = state.totalCarrinho.toFixed(2);
+  if (rodape) rodape.innerText = state.totalCarrinho.toFixed(2); // .toFixed(2) garante 2 casas decimais
 
   const badge = document.getElementById("cart-badge");
   if (badge) {
     if (totalQuantidadeItens > 0) {
       badge.innerText = totalQuantidadeItens;
-      badge.classList.remove("hidden");
+      badge.classList.remove("hidden"); // Mostra a bolinha
     } else {
-      badge.classList.add("hidden");
+      badge.classList.add("hidden"); // Esconde a bolinha
     }
   }
 }
 
+// 🪄 Efeito Visual: Quando o cliente clica para adicionar, a foto "voa" para o carrinho!
 function animarParaCarrinho(id, event) {
   if (!event) return;
   const produto = catalogoProdutos.find((p) => p.id === id);
   const cartBtn = document.getElementById("btn-carrinho-topo");
 
+  // Cria um elemento <img> fantasma só para voar pela tela
   const flyingImg = document.createElement("img");
   flyingImg.src = produto.imagem_url;
   flyingImg.className = "item-voador w-16 h-16 border-2 border-blue-900 bg-white";
-  flyingImg.style.left = `${event.clientX - 32}px`;
+  flyingImg.style.left = `${event.clientX - 32}px`; // Pega a posição do clique (X/Y do mouse)
   flyingImg.style.top = `${event.clientY - 32}px`;
   document.body.appendChild(flyingImg);
 
-  const rect = cartBtn.getBoundingClientRect();
+  const rect = cartBtn.getBoundingClientRect(); // Pega as coordenadas X e Y de onde está o carrinho
 
+  // Depois de um piscar de olhos, muda a posição da imagem fantasma para o carrinho
+  // Como o CSS tem 'transition', ela vai voando e encolhendo suavemente
   setTimeout(() => {
     flyingImg.style.left = `${rect.left + rect.width / 2 - 10}px`;
     flyingImg.style.top = `${rect.top + rect.height / 2 - 10}px`;
@@ -454,13 +572,16 @@ function animarParaCarrinho(id, event) {
     flyingImg.style.opacity = "0.3";
   }, 50);
 
+  // Remove o fantasma depois que a viagem termina
   setTimeout(() => {
     flyingImg.remove();
+    // Faz o botão do carrinho "pulsar" quando a imagem chega
     cartBtn.classList.add("scale-110");
     setTimeout(() => cartBtn.classList.remove("scale-110"), 200);
   }, 800);
 }
 
+// Clique no botão verde de ir pro pagamento
 function irParaPagamento() {
   if (state.carrinho.length === 0) {
     alert("Atenção! Seu carrinho está vazio. Adicione produtos para continuar.");
@@ -471,9 +592,10 @@ function irParaPagamento() {
 }
 
 // ==========================================
-// TELA RESUMO
+// 📋 TELA 4: RESUMO (resumo.html)
 // ==========================================
 
+// Quase idêntica a renderizarCatalogo, mas foca num layout de "Lista" ao invés de "Grade (Grid)"
 function renderizarResumoCompleto() {
   const container = document.getElementById("lista-resumo-completo");
   if (!container) return;
@@ -482,6 +604,7 @@ function renderizarResumoCompleto() {
 
   state.carrinho.forEach((item, idx) => {
     total += item.total;
+    // Interpolação de Strings (Template literals com a crase ` `) permite colocar variáveis ${} no meio do HTML
     container.innerHTML += `
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
         <img src="${item.imagem_url}" class="w-20 h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
@@ -510,6 +633,7 @@ function renderizarResumoCompleto() {
   lucide.createIcons();
 }
 
+// Alteração direta na tela de resumo
 function alterarQtdResumo(id, delta) {
   const index = state.carrinho.findIndex((x) => x.id === id);
   if (index !== -1) {
@@ -525,41 +649,49 @@ function alterarQtdResumo(id, delta) {
     }
   }
   salvarSessao();
-  renderizarResumoCompleto();
+  renderizarResumoCompleto(); // Atualiza a tela de resumo inteira na hora
 }
 
+// Quando o cara clica na lixeirinha
 function removerItemResumo(idx) {
   const nomeItem = state.carrinho[idx].nome;
   if (confirm(`Deseja realmente remover "${nomeItem}" do seu pedido?`)) {
-    state.carrinho.splice(idx, 1);
+    state.carrinho.splice(idx, 1); // Remove
     salvarSessao();
     if (state.carrinho.length === 0) {
-      window.location.href = "produtos.html";
+      window.location.href = "produtos.html"; // Se ficou vazio, volta pra comprar mais
     } else {
-      renderizarResumoCompleto();
+      renderizarResumoCompleto(); // Senão, apenas redesenha sem o item
     }
   }
 }
 
 function irParaPagamentoReal() {
-  state.metodoPagamentoSelecionado = null;
+  state.metodoPagamentoSelecionado = null; // Reseta a escolha anterior pra ter ctz
   salvarSessao();
   window.location.href = "pagamento.html";
 }
 
 // ==========================================
-// TELA PAGAMENTO
+// 💳 TELA 5: PAGAMENTO (pagamento.html)
 // ==========================================
 
+/**
+ * 🔹 selecionarPagamento(metodo)
+ * O usuário escolheu PIX ou Débito, etc.
+ * Isso só seleciona visualmente. A compra ainda não foi finalizada.
+ */
 function selecionarPagamento(metodo) {
   state.metodoPagamentoSelecionado = metodo;
   salvarSessao();
 
+  // Limpa todos os botões (Remove a classe azul que indica seleção)
   document.querySelectorAll(".btn-pagamento").forEach((b) => {
     b.classList.remove("border-blue-900", "bg-blue-50");
     b.classList.add("border-slate-300", "bg-white");
   });
 
+  // Identifica quem foi o clicado pra pintar de azul de novo
   let idBotao = "";
   if (metodo === "PIX") idBotao = "btn-pag-pix";
   if (metodo === "Cartão de Crédito") idBotao = "btn-pag-credito";
@@ -571,12 +703,16 @@ function selecionarPagamento(metodo) {
     btnSelecionado.classList.add("border-blue-900", "bg-blue-50");
   }
 
+  // Libera o botão gigante "CONCLUIR COMPRA" que estava cinza/desabilitado
   document.getElementById("btn-finalizar-venda-novo").disabled = false;
 }
 
+// Exibe aquele resuminho lateral na tela de pagamento
 function atualizarResumoPedidoUI() {
   if (!document.getElementById("pag-texto-total")) return;
   const totalText = state.totalCarrinho.toFixed(2);
+  
+  // DOM Manipulation simples em várias partes
   document.getElementById("pag-texto-total").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-subtotal").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-total-final").innerText = `R$ ${totalText}`;
@@ -600,21 +736,30 @@ function atualizarResumoPedidoUI() {
   });
 }
 
+/**
+ * 🔹 finalizarVenda()
+ * MOMENTO CRUCIAL DA APLICAÇÃO: O cliente aperta CONCLUIR COMPRA.
+ * Pegamos todo aquele carrinho pesado e mandamos pro banco de dados pra gerar O PEDIDO REAL!
+ */
 async function finalizarVenda() {
   const btn = document.getElementById("btn-finalizar-venda-novo");
   const span = document.getElementById("btn-finalizar-texto");
   const textoOrig = span.innerText;
-  span.innerText = "PROCESSANDO...";
+  span.innerText = "PROCESSANDO..."; // UX de loading
   btn.disabled = true;
 
+  // Montamos a estrutura perfeita que o Supabase espera pra tabela 'pedidos'
+  // O Supabase tem colunas para: cliente_id, total, metodo_pagamento e a principal: itens_comprados
+  // No Supabase, 'itens_comprados' é um campo mágico JSONB, ou seja, podemos jogar um Array lá dentro!
   const pedido = {
-    cliente_id: state.cliente.id,
+    cliente_id: state.cliente.id, // Relacionamento (Foreign Key): O ID do cliente salva a gente de duplicar dados
     total: state.totalCarrinho,
     metodo_pagamento: state.metodoPagamentoSelecionado,
-    itens_comprados: state.carrinho
+    itens_comprados: state.carrinho // Aqui vai tudo: nomes, precos, imagens... 
   };
 
   try {
+    // ⚡ INSERÇÃO NO SUPABASE: Registra a venda
     const { data, error } = await supabaseClient
       .from('pedidos')
       .insert([pedido]);
@@ -627,7 +772,8 @@ async function finalizarVenda() {
       return;
     }
 
-    // Pedido criado com sucesso, limpar carrinho, manter cliente e ir pra nota
+    // ✅ SUCESSO! Pedido salvo lá na nuvem!
+    // Podemos seguir para a tela de Nota (recibo).
     window.location.href = "nota.html";
 
   } catch (err) {
@@ -639,17 +785,26 @@ async function finalizarVenda() {
 }
 
 // ==========================================
-// TELA NOTA
+// 🧾 TELA 6: NOTA (nota.html)
 // ==========================================
 
+/**
+ * 🔹 gerarNotaVisual()
+ * Gera aquele recibinho de supermercado na tela usando os dados que ainda
+ * estavam na nossa memória (sessionStorage) do totem.
+ */
 function gerarNotaVisual() {
   if (!document.getElementById("nota-cliente")) return;
+  
+  // Preenche os dados de cabeçalho
   document.getElementById("nota-cliente").innerText = state.cliente.nome.toUpperCase();
   document.getElementById("nota-cpf").innerText = state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-  document.getElementById("nota-data").innerText = new Date().toLocaleString();
+  document.getElementById("nota-data").innerText = new Date().toLocaleString(); // Data e hora atual
 
   const tbody = document.getElementById("nota-itens");
   tbody.innerHTML = "";
+  
+  // Preenche a listinha de produtos estilo cupom fiscal
   state.carrinho.forEach((item) => {
     tbody.innerHTML += `<tr><td class="py-1 pr-2 text-slate-700">${item.nome} (${item.qtd}x)</td><td class="text-right font-bold whitespace-nowrap text-blue-900">R$ ${item.total.toFixed(2)}</td></tr>`;
   });
@@ -659,10 +814,15 @@ function gerarNotaVisual() {
   const formas = document.getElementById("nota-formas-pagamento");
   formas.innerHTML = `<strong>FORMA DE PAGAMENTO:</strong><br>${(state.metodoPagamentoSelecionado || "").toUpperCase()}: R$ ${state.totalCarrinho.toFixed(2)}<br>`;
 
+  // 💡 LÓGICA CONDICIONAL DE PIX
+  // Se ele escolheu PIX, temos que mostrar a área onde o QR Code aparece.
   const areaPix = document.getElementById("area-pix-final");
   if (state.metodoPagamentoSelecionado === "PIX") {
     areaPix.classList.remove("hidden");
-    document.getElementById("qrcode").innerHTML = "";
+    document.getElementById("qrcode").innerHTML = ""; // Limpa qualquer QR code anterior
+    
+    // Instancia um QR Code (Integração com a lib qrcode.js que tá no head do HTML)
+    // Na vida real, esse "text" viria de uma integração de pagamento de verdade do Supabase ou Mercado Pago.
     new QRCode(document.getElementById("qrcode"), {
       text: "PIX-PAYLOAD-SIMULADO-PARA-O-JOTTA",
       width: 140,
@@ -671,17 +831,25 @@ function gerarNotaVisual() {
       colorLight: "#f8fafc",
     });
   } else {
+    // Se foi cartão de crédito/débito, esconde a div do QR Code
     areaPix.classList.add("hidden");
   }
 
-  // Limpar o carrinho e método de pagamento (a venda já ocorreu)
+  // 🧹 FAXINA DE FINALIZAÇÃO
+  // A venda ocorreu. Precisamos esvaziar o carrinho, mas repare que NÃO estamos esvaziando o cliente.
+  // Pode ser que ele queira fazer uma nova compra na sequência sem digitar o CPF de novo.
   state.carrinho = [];
   state.totalCarrinho = 0;
   state.metodoPagamentoSelecionado = null;
   salvarSessao();
 }
 
+/**
+ * 🔹 reiniciarTotem()
+ * Função do botão "Sair / Nova Venda" que fica lá no menu superior.
+ * Isso mata o estado inteiro do totem (cliente, tudo) e devolve ele pra estaca zero.
+ */
 function reiniciarTotem() {
-  sessionStorage.clear();
+  sessionStorage.clear(); // Apaga toda a memória do navegador 🧨
   window.location.href = "index.html";
 }
