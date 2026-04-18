@@ -8,6 +8,13 @@ let state = {
 
 let catalogoProdutos = [];
 
+// Armazena dados extras de endereço que não aparecem no formulário
+let enderecoExtra = {
+  bairro: "",
+  cidade: "",
+  estado: ""
+};
+
 // ==========================================
 // FUNÇÕES DE SESSÃO E INICIALIZAÇÃO
 // ==========================================
@@ -57,6 +64,42 @@ function mascaraCEP(i) {
   let v = i.value.replace(/\D/g, "");
   if (v.length > 8) v = v.slice(0, 8);
   i.value = v.replace(/^(\d{5})(\d)/, "$1-$2");
+  
+  if (v.length === 8) {
+    buscarCEP(v);
+  }
+}
+
+async function buscarCEP(cep) {
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await response.json();
+
+    if (data.erro) {
+      alert("CEP não encontrado.");
+      return;
+    }
+
+    const inputEnd = document.getElementById("cad-end");
+    const inputNum = document.getElementById("cad-num");
+
+    if (inputEnd) {
+      // Preenche apenas logradouro no formulário
+      inputEnd.value = data.logradouro || "";
+      
+      // Armazena internamente os outros dados
+      enderecoExtra.bairro = data.bairro || "";
+      enderecoExtra.cidade = data.localidade || "";
+      enderecoExtra.estado = data.uf || "";
+      
+      // Move o foco para o campo de número
+      if (inputNum) {
+        inputNum.focus();
+      }
+    }
+  } catch (error) {
+    console.error("Erro ao buscar CEP:", error);
+  }
 }
 
 function mascaraTel(i) {
@@ -176,7 +219,10 @@ async function salvarCadastro() {
     email,
     cep,
     endereco,
-    numero
+    numero,
+    bairro: enderecoExtra.bairro,
+    cidade: enderecoExtra.cidade,
+    estado: enderecoExtra.estado
   };
 
   try {
