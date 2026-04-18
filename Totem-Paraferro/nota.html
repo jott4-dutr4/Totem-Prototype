@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Totem Paraferro - Autoatendimento (Nota)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- SUPABASE CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="text-blue-900 h-screen overflow-hidden select-none bg-slate-50">
+    <div class="flex h-full w-full bg-slate-50 overflow-hidden">
+      <div class="flex-1 relative bg-slate-50 overflow-y-auto" id="main-content">
+        <section id="screen-nota" class="h-full flex flex-col justify-center items-center p-6 bg-slate-100 fade-in">
+          <div
+            id="printable-area"
+            class="bg-white p-8 w-full max-w-sm shadow-2xl rounded-3xl text-sm font-mono relative overflow-hidden text-slate-800 border border-slate-200"
+          >
+            <div class="absolute top-0 left-0 w-full h-2 bg-blue-900"></div>
+            <div class="text-center mb-8">
+              <h2 class="text-2xl font-black uppercase tracking-tighter text-blue-900">
+                PARAFERRO
+              </h2>
+              <p class="text-[10px] text-slate-400">TOTEM DE AUTOATENDIMENTO</p>
+              <p class="text-[10px] text-slate-400" id="nota-data">
+                --/--/---- --:--
+              </p>
+            </div>
+
+            <div class="border-b border-dashed border-slate-300 pb-4 mb-4">
+              <p class="text-xs">
+                <strong>CLIENTE:</strong> <span id="nota-cliente">...</span>
+              </p>
+              <p class="text-xs">
+                <strong>CPF:</strong> <span id="nota-cpf">...</span>
+              </p>
+            </div>
+
+            <table class="w-full mb-6">
+              <tbody id="nota-itens" class="text-xs"></tbody>
+            </table>
+
+            <div class="border-t-2 border-slate-800 pt-4 mb-6">
+              <div class="flex justify-between text-xl font-black text-blue-900">
+                <span>TOTAL</span>
+                <span>R$ <span id="nota-total">0.00</span></span>
+              </div>
+            </div>
+
+            <div id="nota-formas-pagamento" class="text-[10px] text-slate-500 mb-8 leading-relaxed"></div>
+
+            <div id="area-pix-final" class="hidden text-center bg-slate-50 p-6 rounded-2xl mb-4 border border-slate-200">
+              <p class="font-black text-xs mb-3 text-blue-900">PAGUE COM PIX</p>
+              <div id="qrcode" class="flex justify-center mb-2"></div>
+            </div>
+
+            <p class="text-center text-[10px] text-slate-400 italic">
+              Obrigado pela preferência!!
+            </p>
+          </div>
+
+          <div class="mt-8 flex gap-4 no-print">
+            <button
+              onclick="window.print()"
+              class="bg-slate-200 text-blue-900 px-8 py-4 rounded-2xl font-bold hover:bg-slate-300 transition-all"
+            >
+              <i data-lucide="printer" class="inline mr-2"></i> IMPRIMIR
+            </button>
+            <button
+              onclick="reiniciarTotem()"
+              class="bg-blue-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl hover:bg-blue-800 transition-all"
+            >
+              NOVA VENDA
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      lucide.createIcons();
+      window.onload = function() {
+          verificarSessaoCliente();
+          gerarNotaVisual();
+      };
+    </script>
+  </body>
+</html>
