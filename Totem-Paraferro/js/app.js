@@ -109,22 +109,26 @@ async function verificarCPF() {
   btn.disabled = true;
 
   try {
-    // Busca no Supabase
-    const { data, error } = await supabaseClient
-      .from('clientes')
-      .select('*')
-      .eq('cpf', cpfLimpo)
-      .single();
+    // Busca no Supabase via Edge Function (Seguro)
+    const { data, error } = await supabaseClient.functions.invoke('verificar-cpf', {
+      body: { cpf: cpfLimpo }
+    });
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = Não encontrou (o que é normal se for novo)
-      console.error(error);
-      alert("Erro ao consultar banco de dados.");
+    if (error) {
+      console.error("Erro na comunicação com a API:", error);
+      alert("Erro ao consultar servidor.");
       return;
     }
 
-    if (data) {
+    if (data.error) {
+      console.error(data.error);
+      alert("Erro do servidor: " + data.error);
+      return;
+    }
+
+    if (data.cliente) {
       // Cliente existe
-      state.cliente = data;
+      state.cliente = data.cliente;
       salvarSessao();
       window.location.href = 'produtos.html';
     } else {
@@ -180,19 +184,23 @@ async function salvarCadastro() {
   };
 
   try {
-    const { data, error } = await supabaseClient
-      .from('clientes')
-      .insert([novoCliente])
-      .select()
-      .single();
+    const { data, error } = await supabaseClient.functions.invoke('cadastrar-cliente', {
+      body: { novoCliente }
+    });
 
     if (error) {
-      console.error(error);
-      alert("Erro ao salvar cadastro. Verifique se o CPF já existe.");
+      console.error("Erro na comunicação com a API:", error);
+      alert("Erro de conexão com o servidor.");
       return;
     }
 
-    state.cliente = data;
+    if (data.error) {
+      console.error(data.error);
+      alert("Erro ao salvar cadastro: " + data.error);
+      return;
+    }
+
+    state.cliente = data.cliente;
     sessionStorage.removeItem('cpfEmCadastro');
     salvarSessao();
     window.location.href = 'produtos.html';
@@ -569,13 +577,22 @@ async function finalizarVenda() {
   };
 
   try {
-    const { data, error } = await supabaseClient
-      .from('pedidos')
-      .insert([pedido]);
+    // Chama a Edge Function do Supabase para criar o pedido no backend
+    const { data, error } = await supabaseClient.functions.invoke('criar-pedido', {
+      body: pedido
+    });
 
     if (error) {
-      console.error(error);
-      alert("Erro ao registrar pedido.");
+      console.error("Erro na chamada da função:", error);
+      alert("Erro de comunicação com o servidor.");
+      btn.disabled = false;
+      span.innerText = textoOrig;
+      return;
+    }
+
+    if (data && data.error) {
+      console.error("Erro retornado pelo backend:", data.error);
+      alert("Erro ao registrar pedido: " + data.error);
       btn.disabled = false;
       span.innerText = textoOrig;
       return;
