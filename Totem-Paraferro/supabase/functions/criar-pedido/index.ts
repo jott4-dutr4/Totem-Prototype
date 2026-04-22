@@ -93,11 +93,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Erro ao criar pedido:", error.message);
+    console.error("Erro ao criar pedido:", error);
+    // Retornamos 200 com um objeto 'error' para o frontend ler exatamente o que falhou sem estourar exception cega
     return new Response(
-      JSON.stringify({ error: error.message || 'Erro interno do servidor' }),
+      JSON.stringify({ error: error.message || JSON.stringify(error) || 'Erro interno do servidor' }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
