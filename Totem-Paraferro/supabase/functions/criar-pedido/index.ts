@@ -69,8 +69,7 @@ serve(async (req) => {
       cliente_id,
       total: totalCalculado, // Total seguro calculado pelo servidor
       metodo_pagamento,
-      itens_comprados: itensProcessados,
-      status: 'pendente'
+      itens_comprados: itensProcessados
     };
 
     // Insere o pedido na tabela do Supabase
