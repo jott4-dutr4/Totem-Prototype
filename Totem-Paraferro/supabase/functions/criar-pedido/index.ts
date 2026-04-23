@@ -21,10 +21,11 @@ serve(async (req) => {
 
     // Recebe os dados do corpo da requisição
     const body = await req.json();
-    const { cliente_id, metodo_pagamento, itens_comprados } = body;
+    const { cliente_id, itens_comprados } = body;
+    // metodo_pagamento é opcional agora
 
     // Validação básica de segurança
-    if (!cliente_id || !metodo_pagamento || !Array.isArray(itens_comprados) || itens_comprados.length === 0) {
+    if (!cliente_id || !Array.isArray(itens_comprados) || itens_comprados.length === 0) {
       return new Response(
         JSON.stringify({ error: "Dados do pedido incompletos ou inválidos." }),
         {
@@ -68,7 +69,6 @@ serve(async (req) => {
     const pedido = {
       cliente_id,
       total: totalCalculado, // Total seguro calculado pelo servidor
-      metodo_pagamento,
       itens_comprados: itensProcessados,
       status: 'pendente'
     };

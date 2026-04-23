@@ -4,6 +4,7 @@ let state = {
   carrinho: [],
   totalCarrinho: 0,
   metodoPagamentoSelecionado: null,
+  pedidoAtual: null,
 };
 
 let catalogoProdutos = [];
@@ -503,10 +504,49 @@ function removerItemResumo(idx) {
   }
 }
 
-function irParaPagamentoReal() {
+async function irParaPagamentoReal() {
   state.metodoPagamentoSelecionado = null;
-  salvarSessao();
-  window.location.href = "pagamento.html";
+  
+  const btn = document.querySelector('button[onclick="irParaPagamentoReal()"]');
+  const textoOrig = btn ? btn.innerText : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "GERANDO PEDIDO...";
+  }
+
+  const pedido = {
+    cliente_id: state.cliente.id,
+    itens_comprados: state.carrinho
+  };
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('criar-pedido', {
+      body: pedido
+    });
+
+    if (error || (data && data.error)) {
+      console.error(error || data.error);
+      alert("Erro ao criar pedido: " + (data?.error || ""));
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = textoOrig;
+      }
+      return;
+    }
+
+    // Salva o pedido no estado (incluindo o numero_pedido gerado pelo banco)
+    state.pedidoAtual = data.pedido;
+    salvarSessao();
+    window.location.href = "pagamento.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro de conexão ao gerar pedido.");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = textoOrig;
+    }
+  }
 }
 
 // ==========================================
@@ -538,10 +578,19 @@ function selecionarPagamento(metodo) {
 
 function atualizarResumoPedidoUI() {
   if (!document.getElementById("pag-texto-total")) return;
+
   const totalText = state.totalCarrinho.toFixed(2);
   document.getElementById("pag-texto-total").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-subtotal").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-total-final").innerText = `R$ ${totalText}`;
+
+  // Mostra o número do pedido no topo se ele existir
+  const headerElem = document.getElementById("header-pagamento");
+  if (headerElem && state.pedidoAtual && state.pedidoAtual.numero_pedido) {
+    // Formata com zeros à esquerda (ex: 0001)
+    const numFormatado = String(state.pedidoAtual.numero_pedido).padStart(4, '0');
+    headerElem.innerHTML = `Pagamento do Pedido <span class="text-blue-600">#${numFormatado}</span>`;
+  }
 
   const container = document.getElementById("resumo-itens");
   container.innerHTML = "";
@@ -569,36 +618,25 @@ async function finalizarVenda() {
   span.innerText = "PROCESSANDO...";
   btn.disabled = true;
 
-  const pedido = {
-    cliente_id: state.cliente.id,
-    total: state.totalCarrinho,
-    metodo_pagamento: state.metodoPagamentoSelecionado,
-    itens_comprados: state.carrinho
-  };
-
   try {
-    // Chama a Edge Function do Supabase para criar o pedido no backend
-    const { data, error } = await supabaseClient.functions.invoke('criar-pedido', {
-      body: pedido
+    // Agora só confirmamos o pagamento
+    const { data, error } = await supabaseClient.functions.invoke('confirmar-pagamento', {
+      body: {
+        numero_pedido: state.pedidoAtual.numero_pedido,
+        metodo_pagamento: state.metodoPagamentoSelecionado
+      }
     });
 
-    if (error) {
-      console.error("Erro na chamada da função:", error);
-      alert("Erro de comunicação com o servidor.");
+    if (error || (data && data.error)) {
+      console.error(error || data.error);
+      alert("Erro ao registrar pagamento: " + (data?.error || ""));
       btn.disabled = false;
       span.innerText = textoOrig;
       return;
     }
 
-    if (data && data.error) {
-      console.error("Erro retornado pelo backend:", data.error);
-      alert("Erro ao registrar pedido: " + data.error);
-      btn.disabled = false;
-      span.innerText = textoOrig;
-      return;
-    }
-
-    // Pedido criado com sucesso, limpar carrinho, manter cliente e ir pra nota
+    // Pagamento confirmado com sucesso, atualiza o pedido local e vai pra nota
+    state.pedidoAtual = data.pedido;
     window.location.href = "nota.html";
 
   } catch (err) {
@@ -615,6 +653,12 @@ async function finalizarVenda() {
 
 function gerarNotaVisual() {
   if (!document.getElementById("nota-cliente")) return;
+  
+  if (state.pedidoAtual && state.pedidoAtual.numero_pedido) {
+    const numFormatado = String(state.pedidoAtual.numero_pedido).padStart(4, '0');
+    document.getElementById("nota-numero-pedido").innerText = `#${numFormatado}`;
+  }
+
   document.getElementById("nota-cliente").innerText = state.cliente.nome.toUpperCase();
   document.getElementById("nota-cpf").innerText = state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   document.getElementById("nota-data").innerText = new Date().toLocaleString();
@@ -645,10 +689,11 @@ function gerarNotaVisual() {
     areaPix.classList.add("hidden");
   }
 
-  // Limpar o carrinho e método de pagamento (a venda já ocorreu)
+  // Limpar o carrinho, método de pagamento e pedido atual (a venda já ocorreu)
   state.carrinho = [];
   state.totalCarrinho = 0;
   state.metodoPagamentoSelecionado = null;
+  state.pedidoAtual = null;
   salvarSessao();
 }
 
