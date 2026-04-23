@@ -11,59 +11,171 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Totem Paraferro - Autoatendimento (Cadastro)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
     <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/output.css" />
   </head>
-  <body class="text-blue-900 h-screen overflow-hidden select-none bg-slate-50">
-    <div class="flex h-full w-full bg-slate-50 overflow-hidden">
-      <div class="flex-1 relative bg-slate-50 overflow-y-auto" id="main-content">
-        <section id="screen-cadastro" class="h-full flex flex-col p-6 fade-in overflow-y-auto">
-          <div class="w-full mx-auto pt-10 pb-10 relative">
+  <body class="
+    text-blue-900
+    h-screen
+    overflow-hidden
+    select-none
+    bg-slate-50
+  ">
+    <div class="
+    flex
+    h-full
+    w-full
+    bg-slate-50
+    overflow-hidden
+  ">
+      <div class="
+    flex-1
+    relative
+    bg-slate-50
+    overflow-y-auto
+  " id="main-content">
+        <section id="screen-cadastro" class="
+    h-full
+    flex
+    flex-col
+    p-6
+    fade-in
+    overflow-y-auto
+  ">
+          <div class="
+    w-full
+    mx-auto
+    pt-10
+    pb-10
+    relative
+  ">
             
-            <button onclick="window.location.href='index.html'" class="mb-4 text-blue-900 font-bold flex items-center gap-2 hover:opacity-80">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i> Voltar
+            <button onclick="window.location.href='index.html'" class="
+    mb-4
+    text-blue-900
+    font-bold
+    flex
+    items-center
+    gap-2
+    hover:opacity-80
+  ">
+                <i data-lucide="arrow-left" class="
+    w-5
+    h-5
+  "></i> Voltar
             </button>
 
-            <h2 class="text-3xl font-bold text-blue-900 mb-2 w-3/4">
+            <h2 class="
+    text-3xl
+    font-bold
+    text-blue-900
+    mb-2
+    w-3/4
+  ">
               Primeira vez por aqui?
             </h2>
 
-            <p class="text-blue-800 font-bold mb-8 bg-blue-50 p-3 rounded-lg border border-blue-200 inline-block">
-              <i data-lucide="file-text" class="inline w-4 h-4 mr-1"></i>
+            <p class="
+    text-blue-800
+    font-bold
+    mb-8
+    bg-blue-50
+    p-3
+    rounded-lg
+    border
+    border-blue-200
+    inline-block
+  ">
+              <i data-lucide="file-text" class="
+    inline
+    w-4
+    h-4
+    mr-1
+  "></i>
               Informe os dados para o envio da NFC-e
             </p>
 
             <img
               src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
               alt="Logo Paraferro"
-              class="w-56 absolute top-[30px] right-[40px]"
+              class="
+    w-56
+    absolute
+    top-[30px]
+    right-[40px]
+  "
             />
 
-            <!-- ========================================== -->
-            <!-- BLOCO: FORMULÁRIO DE CADASTRO              -->
-            <!-- ========================================== -->
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-5">
+            <div class="
+    bg-white
+    p-8
+    rounded-3xl
+    shadow-sm
+    border
+    border-slate-200
+    space-y-5
+  ">
               <div>
-                <label class="block text-sm font-bold text-slate-600 mb-1">Nome Completo *</label>
-                <!-- Cada input tem um 'id' único que nosso app.js usará para "pescar" a informação depois -->
+                <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">Nome Completo *</label>
                 <input
                   id="cad-nome"
-                  class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                  class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                   placeholder="Ex: Jotta Silva"
                 />
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="
+    grid
+    grid-cols-1
+    md:grid-cols-2
+    gap-4
+  ">
                 <div>
-                  <label class="block text-sm font-bold text-slate-600 mb-1">Telefone *</label>
+                  <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">Telefone *</label>
                   <input
                     id="cad-tel"
-                    class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                    class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                     type="tel"
                     placeholder="(00) 00000-0000"
                     oninput="mascaraTel(this)"
@@ -71,46 +183,119 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-bold text-slate-600 mb-1">E-mail *</label>
+                  <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">E-mail *</label>
                   <input
                     id="cad-email"
                     type="email"
-                    class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                    class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                     placeholder="seu@email.com"
                   />
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="
+    grid
+    grid-cols-1
+    md:grid-cols-3
+    gap-4
+  ">
                 <div class="md:col-span-1">
-                  <!-- ⚡ INTEGRAÇÃO VIA CEP: Preste atenção no oninput="mascaraCEP(this)" -->
-                  <!-- Lá dentro do app.js, a máscara vai conferir se o número chegou a 8 dígitos. -->
-                  <!-- Se sim, o app.js puxa os dados e joga no campo Endereço sozinho! -->
-                  <label class="block text-sm font-bold text-slate-600 mb-1">CEP *</label>
+                  <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">CEP *</label>
                   <input
                     id="cad-cep"
-                    class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                    class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                     placeholder="00000-000"
                     oninput="mascaraCEP(this)"
                     maxlength="9"
                   />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-bold text-slate-600 mb-1">Endereço *</label>
-                  <!-- Campo que é auto-preenchido pela API do ViaCEP -->
+                  <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">Endereço *</label>
                   <input
                     id="cad-end"
-                    class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                    class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                     placeholder="Rua, Avenida..."
                   />
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-slate-600 mb-1">Número *</label>
+                <label class="
+    block
+    text-sm
+    font-bold
+    text-slate-600
+    mb-1
+  ">Número *</label>
                 <input
                   id="cad-num"
-                  class="w-full border-2 border-slate-300 bg-slate-50 text-blue-900 placeholder-slate-400 rounded-xl p-3 focus:border-blue-900 outline-none transition-all"
+                  class="
+    w-full
+    border-2
+    border-slate-300
+    bg-slate-50
+    text-blue-900
+    placeholder-slate-400
+    rounded-xl
+    p-3
+    focus:border-blue-900
+    outline-none
+    transition-all
+  "
                   placeholder="Ex: 123 ou S/N"
                 />
               </div>
@@ -122,10 +307,34 @@
 
               <button
                 onclick="salvarCadastro()"
-                class="w-full mt-4 bg-blue-900 hover:bg-blue-800 text-white text-lg font-black py-5 rounded-2xl shadow-lg shadow-blue-900/20 transition-all active:scale-95 flex flex-col items-center justify-center leading-tight"
+                class="
+    w-full
+    mt-4
+    bg-blue-900
+    hover:bg-blue-800
+    text-white
+    text-lg
+    font-black
+    py-5
+    rounded-2xl
+    shadow-lg
+    shadow-blue-900/20
+    transition-all
+    active:scale-95
+    flex
+    flex-col
+    items-center
+    justify-center
+    leading-tight
+  "
               >
                 <span>Confirmar dados</span>
-                <span class="text-sm opacity-90 font-normal mt-1">para emissão da NFC-e</span>
+                <span class="
+    text-sm
+    opacity-90
+    font-normal
+    mt-1
+  ">para emissão da NFC-e</span>
               </button>
             </div>
           </div>

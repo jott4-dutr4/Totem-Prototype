@@ -1,3 +1,63 @@
+@import "tailwindcss";
+
+@layer components {
+  .btn-primary {
+    @apply
+      bg-blue-900
+      text-white
+      font-black
+      py-5
+      rounded-2xl
+      shadow-lg
+      shadow-blue-900/20
+      transition-all;
+  }
+
+  .btn-secondary {
+    @apply
+      bg-slate-100
+      text-blue-900
+      border
+      border-slate-300
+      font-bold
+      py-5
+      rounded-2xl
+      transition-all;
+  }
+
+  .input-padrao {
+    @apply
+      w-full
+      text-center
+      text-3xl
+      font-bold
+      tracking-tighter
+      border-2
+      border-slate-300
+      bg-slate-50
+      text-blue-900
+      rounded-2xl
+      p-5
+      focus:outline-none
+      focus:border-blue-900
+      transition-all
+      placeholder-slate-400
+      shadow-inner;
+  }
+
+  .card-padrao {
+    @apply
+      bg-white
+      px-8
+      py-10
+      rounded-3xl
+      shadow-xl
+      border
+      border-slate-200
+      text-center;
+  }
+}
+
 body {
   font-family: "Inter", sans-serif;
 }
@@ -35,9 +95,9 @@ body {
 .item-voador {
   position: fixed;
   z-index: 9999;
-  pointer-events: none; /* Garante que o cliente não consiga clicar na imagem enquanto ela voa */
-  transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Faz o efeito "estilingue/sugado" */
+  pointer-events: none;
+  transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Uma sombra legal pra destacar o item da tela */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }

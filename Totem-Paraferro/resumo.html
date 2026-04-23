@@ -11,63 +11,166 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Totem Paraferro - Autoatendimento (Resumo)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
     <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/output.css" />
   </head>
-  <body class="text-blue-900 h-screen overflow-hidden select-none bg-slate-50">
-    <div class="flex h-full w-full bg-slate-50 overflow-hidden">
-      <div class="flex-1 relative bg-slate-50 overflow-y-auto" id="main-content">
-        <section id="screen-resumo" class="h-full flex flex-col fade-in bg-slate-50">
-          
-          <!-- ========================================== -->
-          <!-- BLOCO: CABEÇALHO                           -->
-          <!-- ========================================== -->
-          <div class="p-4 md:p-6 bg-white border-b border-slate-200 flex justify-between items-center sticky top-0 z-30 shadow-sm min-h-[80px] md:min-h-[100px]">
-            <div class="relative z-10">
-              <h2 class="text-xl md:text-2xl font-black text-blue-900 leading-tight">Resumo do Pedido</h2>
-              <p class="text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-widest">Revise seus itens</p>
+  <body class="
+    text-blue-900
+    h-screen
+    overflow-hidden
+    select-none
+    bg-slate-50
+  ">
+    <div class="
+    flex
+    h-full
+    w-full
+    bg-slate-50
+    overflow-hidden
+  ">
+      <div class="
+    flex-1
+    relative
+    bg-slate-50
+    overflow-y-auto
+  " id="main-content">
+        <section id="screen-resumo" class="
+    h-full
+    flex
+    flex-col
+    fade-in
+    bg-slate-50
+  ">
+          <div class="
+    p-4
+    md:p-6
+    bg-white
+    border-b
+    border-slate-200
+    flex
+    justify-between
+    items-center
+    sticky
+    top-0
+    z-30
+    shadow-sm
+    min-h-[80px]
+    md:min-h-[100px]
+  ">
+            <div class="
+    relative
+    z-10
+  ">
+              <h2 class="
+    text-xl
+    md:text-2xl
+    font-black
+    text-blue-900
+    leading-tight
+  ">Resumo do Pedido</h2>
+              <p class="
+    text-[10px]
+    md:text-xs
+    text-slate-500
+    uppercase
+    font-bold
+    tracking-widest
+  ">Revise seus itens</p>
             </div>
 
             <img
               src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
               alt="Logo Paraferro"
-              class="w-32 md:w-44 absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+              class="
+    w-32
+    md:w-44
+    absolute
+    top-1/2
+    left-1/2
+    -translate-y-1/2
+    -translate-x-1/2
+  "
             />
 
-            <!-- Espaço vazio apenas para manter a logo centralizada -->
-            <div class="w-24 md:w-32"></div>
+            <div class="
+    w-24
+    md:w-32
+  "></div>
           </div>
 
-          <!-- ========================================== -->
-          <!-- BLOCO: LISTA DE PRODUTOS                   -->
-          <!-- ========================================== -->
-          <!-- O app.js usa o ID 'lista-resumo-completo' para injetar as divs de cada produto -->
-          <div class="flex-1 overflow-y-auto p-6 space-y-4" id="lista-resumo-completo">
-            <!-- Itens serão renderizados aqui pelo Javascript (DOM Manipulation) -->
+          <div class="
+    flex-1
+    overflow-y-auto
+    p-6
+    space-y-4
+  " id="lista-resumo-completo">
+            <!-- Itens serão renderizados aqui -->
           </div>
 
-          <!-- ========================================== -->
-          <!-- BLOCO: RODAPÉ E AÇÕES                      -->
-          <!-- ========================================== -->
-          <div class="bg-white border-t border-slate-200 p-6 space-y-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-            <div class="flex justify-between items-center text-blue-900">
-              <span class="text-lg font-bold">Total do Pedido</span>
-              <span class="text-3xl font-black">R$ <span id="total-resumo-tela">0.00</span></span>
+          <div class="
+    bg-white
+    border-t
+    border-slate-200
+    p-6
+    space-y-4
+    shadow-[0_-4px_10px_rgba(0,0,0,0.05)]
+  ">
+            <div class="
+    flex
+    justify-between
+    items-center
+    text-blue-900
+  ">
+              <span class="
+    text-lg
+    font-bold
+  ">Total do Pedido</span>
+              <span class="
+    text-3xl
+    font-black
+  ">R$ <span id="total-resumo-tela">0.00</span></span>
             </div>
 
-            <div class="flex gap-4">
-              <!-- Volta pra tela anterior (fluxo de navegação) -->
-              <button onclick="window.location.href='produtos.html'" class="flex-1 bg-red-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-red-700 active:scale-95 transition-all text-sm uppercase">
+            <div class="
+    flex
+    gap-4
+  ">
+              <button onclick="window.location.href='produtos.html'" class="
+    flex-1
+    bg-red-600
+    text-white
+    font-black
+    py-5
+    rounded-2xl
+    shadow-lg
+    hover:bg-red-700
+    active:scale-95
+    transition-all
+    text-sm
+    uppercase
+  ">
                 Continuar Comprando?
               </button>
 
-              <!-- Avança para a etapa de pagamento. A função irParaPagamentoReal() zera qualquer método de pagto anterior na memória -->
-              <button onclick="irParaPagamentoReal()" class="flex-1 bg-blue-900 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-blue-800 active:scale-95 transition-all text-sm uppercase">
+              <button onclick="irParaPagamentoReal()" class="
+    flex-1
+    bg-blue-900
+    text-white
+    font-black
+    py-5
+    rounded-2xl
+    shadow-lg
+    hover:bg-blue-800
+    active:scale-95
+    transition-all
+    text-sm
+    uppercase
+  ">
                 Gerar Pedido
               </button>
             </div>

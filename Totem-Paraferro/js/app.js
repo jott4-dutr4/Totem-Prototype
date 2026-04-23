@@ -13,10 +13,11 @@
 // fica salvo aqui enquanto ele navega. Se a página recarregar e nós não
 // salvarmos isso no 'sessionStorage', a gente perde tudo!
 let state = {
-  cliente: null, // Guarda os dados do cliente (nome, cpf, etc)
-  carrinho: [], // Lista de produtos que ele colocou no carrinho
-  totalCarrinho: 0, // Valor total da compra em R$
-  metodoPagamentoSelecionado: null, // Ex: 'PIX' ou 'Cartão de Crédito'
+  cliente: null,
+  carrinho: [],
+  totalCarrinho: 0,
+  metodoPagamentoSelecionado: null,
+  pedidoAtual: null,
 };
 
 // Guarda a lista completa de produtos que vem do banco de dados (Supabase)
@@ -208,27 +209,28 @@ async function verificarCPF() {
   btn.disabled = true;
 
   try {
-    // 3. ⚡ BUSCA NO SUPABASE: Procura na tabela 'clientes' um registro com esse 'cpf'
-    // A função '.single()' diz que queremos apenas UM resultado.
-    const { data, error } = await supabaseClient
-      .from('clientes')
-      .select('*')
-      .eq('cpf', cpfLimpo)
-      .single();
+    // Busca no Supabase via Edge Function (Seguro)
+    const { data, error } = await supabaseClient.functions.invoke('verificar-cpf', {
+      body: { cpf: cpfLimpo }
+    });
 
-    // Código PGRST116 significa "Não encontrei nenhuma linha".
-    // Se deu outro erro que não seja esse, aí sim é um problema real.
-    if (error && error.code !== 'PGRST116') { 
-      console.error(error);
-      alert("Erro ao consultar banco de dados.");
+    if (error) {
+      console.error("Erro na comunicação com a API:", error);
+      alert("Erro ao consultar servidor.");
       return;
     }
 
-    if (data) {
-      // ✅ RESULTADO A: O cliente já está cadastrado no banco.
-      state.cliente = data; // Salva o cliente logado no 'state'
-      salvarSessao(); // Guarda no navegador
-      window.location.href = 'produtos.html'; // Pula direto pras compras
+    if (data.error) {
+      console.error(data.error);
+      alert("Erro do servidor: " + data.error);
+      return;
+    }
+
+    if (data.cliente) {
+      // Cliente existe
+      state.cliente = data.cliente;
+      salvarSessao();
+      window.location.href = 'produtos.html';
     } else {
       // ❌ RESULTADO B: Cliente não encontrado (é novo).
       // Salva só o CPF temporariamente pra gente não fazer ele digitar de novo na tela de cadastro.
@@ -298,23 +300,24 @@ async function salvarCadastro() {
   };
 
   try {
-    // ⚡ INSERÇÃO NO SUPABASE: Insere o array [novoCliente] na tabela 'clientes'.
-    // O '.select().single()' diz: "Insere isso e já me retorna como ficou salvo".
-    const { data, error } = await supabaseClient
-      .from('clientes')
-      .insert([novoCliente])
-      .select()
-      .single();
+    const { data, error } = await supabaseClient.functions.invoke('cadastrar-cliente', {
+      body: { novoCliente }
+    });
 
     if (error) {
-      console.error(error);
-      alert("Erro ao salvar cadastro. Verifique se o CPF já existe.");
+      console.error("Erro na comunicação com a API:", error);
+      alert("Erro de conexão com o servidor.");
       return;
     }
 
-    // Sucesso!
-    state.cliente = data; // Loga o usuário
-    sessionStorage.removeItem('cpfEmCadastro'); // Limpa a sujeira
+    if (data.error) {
+      console.error(data.error);
+      alert("Erro ao salvar cadastro: " + data.error);
+      return;
+    }
+
+    state.cliente = data.cliente;
+    sessionStorage.removeItem('cpfEmCadastro');
     salvarSessao();
     window.location.href = 'produtos.html'; // Vai pras compras!
 
@@ -378,13 +381,13 @@ async function carregarProdutosDoBanco() {
 function alterarQuantidade(id, delta, event = null) {
   // Verifica se o produto já está na lista do carrinho
   const index = state.carrinho.findIndex((x) => x.id === id);
+  const p = catalogoProdutos.find((x) => x.id === id);
+  const estoqueAtual = p.estoque_atual !== undefined ? p.estoque_atual : 999;
 
   if (index === -1) {
     // Produto não está no carrinho
     if (delta > 0) {
-      // Pega os dados dele do catálogo geral
-      const p = catalogoProdutos.find((x) => x.id === id);
-      // Cria uma cópia dele usando o "Spread Operator" (...) e adiciona qtd e total
+      if (1 > estoqueAtual) return alert("Produto sem estoque no momento.");
       state.carrinho.push({ ...p, qtd: 1, total: p.preco });
       
       if (event) animarParaCarrinho(id, event); // Faz a imagem voar
@@ -400,7 +403,7 @@ function alterarQuantidade(id, delta, event = null) {
         state.carrinho.splice(index, 1); // Splice: arranca 1 elemento na posição 'index'
       }
     } else {
-      // Apenas atualiza
+      if (novaQtd > estoqueAtual) return alert("Quantidade máxima em estoque atingida.");
       item.qtd = novaQtd;
       item.total = item.qtd * item.preco;
       if (delta > 0 && event) animarParaCarrinho(id, event);
@@ -409,15 +412,16 @@ function alterarQuantidade(id, delta, event = null) {
 
   // Toda alteração precisa ser salva na sessão para não perdermos!
   salvarSessao();
-  atualizarCarrinhoUI(); // Atualiza valor no rodapé
-  // Redesenha a lista pra atualizar os botões de [+] e [-] de acordo com a nova quantidade
-  renderizarCatalogo(document.getElementById("search-catalogo").value);
+  atualizarCarrinhoUI();
+  renderizarCatalogo(document.getElementById("search-catalogo")?.value || "");
 }
 
 // Quando o cara quer digitar "100" para não ter que apertar "+" 100 vezes.
 function alterarQuantidadeManual(id, valor) {
   const novaQtd = parseInt(valor, 10);
   const index = state.carrinho.findIndex((x) => x.id === id);
+  const p = catalogoProdutos.find((x) => x.id === id);
+  const estoqueAtual = p.estoque_atual !== undefined ? p.estoque_atual : 999;
 
   if (index !== -1) {
     const item = state.carrinho[index];
@@ -426,12 +430,17 @@ function alterarQuantidadeManual(id, valor) {
         state.carrinho.splice(index, 1);
       }
     } else {
-      item.qtd = novaQtd;
+      if (novaQtd > estoqueAtual) {
+        alert("Quantidade máxima em estoque atingida.");
+        item.qtd = estoqueAtual;
+      } else {
+        item.qtd = novaQtd;
+      }
       item.total = item.qtd * item.preco;
     }
     salvarSessao();
     atualizarCarrinhoUI();
-    renderizarCatalogo(document.getElementById("search-catalogo").value);
+    renderizarCatalogo(document.getElementById("search-catalogo")?.value || "");
   }
 }
 
@@ -504,8 +513,9 @@ function renderizarCatalogo(filtro = "") {
         </div>
         <div class="p-5">
           <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
-          <p class="text-[10px] text-slate-500 uppercase font-bold mb-4">${p.descricao || ''}</p>
-          <div class="flex justify-between items-center h-10">
+          <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">${p.descricao || ''}</p>
+          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque: ${p.estoque_atual !== undefined ? p.estoque_atual : '?'}</p>
+          <div class="flex justify-between items-center h-10 mt-3">
             <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
           </div>
@@ -612,6 +622,7 @@ function renderizarResumoCompleto() {
         <div class="flex-1">
           <h4 class="font-bold text-blue-900 leading-tight">${item.nome}</h4>
           <p class="text-sm font-black text-blue-800 mt-1">R$ ${item.total.toFixed(2)}</p>
+          <p class="text-[11px] font-bold mt-1 ${item.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque disponível: ${item.estoque_atual !== undefined ? item.estoque_atual : '?'}</p>
           
           <div class="flex items-center gap-3 mt-3">
             <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
@@ -666,10 +677,50 @@ function removerItemResumo(idx) {
   }
 }
 
-function irParaPagamentoReal() {
-  state.metodoPagamentoSelecionado = null; // Reseta a escolha anterior pra ter ctz
-  salvarSessao();
-  window.location.href = "pagamento.html";
+async function irParaPagamentoReal() {
+  state.metodoPagamentoSelecionado = null;
+
+  const btn = document.querySelector('button[onclick="irParaPagamentoReal()"]');
+  const textoOrig = btn ? btn.innerText : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "GERANDO PEDIDO...";
+  }
+
+  const pedido = {
+    cliente_id: state.cliente.id,
+    itens_comprados: state.carrinho,
+    numero_pedido: state.pedidoAtual ? state.pedidoAtual.numero_pedido : undefined
+  };
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('criar-pedido', {
+      body: pedido
+    });
+
+    if (error || (data && data.error)) {
+      console.error(error || data.error);
+      alert("Erro ao criar pedido: " + (data?.error || ""));
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = textoOrig;
+      }
+      return;
+    }
+
+    // Salva o pedido no estado (incluindo o numero_pedido gerado pelo banco)
+    state.pedidoAtual = data.pedido;
+    salvarSessao();
+    window.location.href = "pagamento.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro de conexão ao gerar pedido.");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = textoOrig;
+    }
+  }
 }
 
 // ==========================================
@@ -710,12 +761,21 @@ function selecionarPagamento(metodo) {
 // Exibe aquele resuminho lateral na tela de pagamento
 function atualizarResumoPedidoUI() {
   if (!document.getElementById("pag-texto-total")) return;
+
   const totalText = state.totalCarrinho.toFixed(2);
   
   // DOM Manipulation simples em várias partes
   document.getElementById("pag-texto-total").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-subtotal").innerText = `R$ ${totalText}`;
   document.getElementById("resumo-total-final").innerText = `R$ ${totalText}`;
+
+  // Mostra o número do pedido no topo se ele existir
+  const headerElem = document.getElementById("header-pagamento");
+  if (headerElem && state.pedidoAtual && state.pedidoAtual.numero_pedido) {
+    // Formata com zeros à esquerda (ex: 0001)
+    const numFormatado = String(state.pedidoAtual.numero_pedido).padStart(4, '0');
+    headerElem.innerHTML = `Pagamento do Pedido <span class="text-blue-600">#${numFormatado}</span>`;
+  }
 
   const container = document.getElementById("resumo-itens");
   container.innerHTML = "";
@@ -748,32 +808,25 @@ async function finalizarVenda() {
   span.innerText = "PROCESSANDO..."; // UX de loading
   btn.disabled = true;
 
-  // Montamos a estrutura perfeita que o Supabase espera pra tabela 'pedidos'
-  // O Supabase tem colunas para: cliente_id, total, metodo_pagamento e a principal: itens_comprados
-  // No Supabase, 'itens_comprados' é um campo mágico JSONB, ou seja, podemos jogar um Array lá dentro!
-  const pedido = {
-    cliente_id: state.cliente.id, // Relacionamento (Foreign Key): O ID do cliente salva a gente de duplicar dados
-    total: state.totalCarrinho,
-    metodo_pagamento: state.metodoPagamentoSelecionado,
-    itens_comprados: state.carrinho // Aqui vai tudo: nomes, precos, imagens... 
-  };
-
   try {
-    // ⚡ INSERÇÃO NO SUPABASE: Registra a venda
-    const { data, error } = await supabaseClient
-      .from('pedidos')
-      .insert([pedido]);
+    // Agora só confirmamos o pagamento
+    const { data, error } = await supabaseClient.functions.invoke('confirmar-pagamento', {
+      body: {
+        numero_pedido: state.pedidoAtual.numero_pedido,
+        metodo_pagamento: state.metodoPagamentoSelecionado
+      }
+    });
 
-    if (error) {
-      console.error(error);
-      alert("Erro ao registrar pedido.");
+    if (error || (data && data.error)) {
+      console.error(error || data.error);
+      alert("Erro ao registrar pagamento: " + (data?.error || ""));
       btn.disabled = false;
       span.innerText = textoOrig;
       return;
     }
 
-    // ✅ SUCESSO! Pedido salvo lá na nuvem!
-    // Podemos seguir para a tela de Nota (recibo).
+    // Pagamento confirmado com sucesso, atualiza o pedido local e vai pra nota
+    state.pedidoAtual = data.pedido;
     window.location.href = "nota.html";
 
   } catch (err) {
@@ -795,8 +848,12 @@ async function finalizarVenda() {
  */
 function gerarNotaVisual() {
   if (!document.getElementById("nota-cliente")) return;
-  
-  // Preenche os dados de cabeçalho
+
+  if (state.pedidoAtual && state.pedidoAtual.numero_pedido) {
+    const numFormatado = String(state.pedidoAtual.numero_pedido).padStart(4, '0');
+    document.getElementById("nota-numero-pedido").innerText = `#${numFormatado}`;
+  }
+
   document.getElementById("nota-cliente").innerText = state.cliente.nome.toUpperCase();
   document.getElementById("nota-cpf").innerText = state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   document.getElementById("nota-data").innerText = new Date().toLocaleString(); // Data e hora atual
@@ -835,12 +892,11 @@ function gerarNotaVisual() {
     areaPix.classList.add("hidden");
   }
 
-  // 🧹 FAXINA DE FINALIZAÇÃO
-  // A venda ocorreu. Precisamos esvaziar o carrinho, mas repare que NÃO estamos esvaziando o cliente.
-  // Pode ser que ele queira fazer uma nova compra na sequência sem digitar o CPF de novo.
+  // Limpar o carrinho, método de pagamento e pedido atual (a venda já ocorreu)
   state.carrinho = [];
   state.totalCarrinho = 0;
   state.metodoPagamentoSelecionado = null;
+  state.pedidoAtual = null;
   salvarSessao();
 }
 
