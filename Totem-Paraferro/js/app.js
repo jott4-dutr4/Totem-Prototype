@@ -266,13 +266,11 @@ async function carregarProdutosDoBanco() {
     // --- Fim da geração ---
 
     const loading = document.getElementById('loading-produtos');
-    if (loading) loading.classList.add('hidden');
+    if (loading) loading.style.display = 'none';
 
     const grid = document.getElementById('grid-catalogo');
     if (grid) {
-      // Usa display:grid para compatibilidade com o layout inline do totem portrait
       grid.style.display = 'grid';
-      grid.classList.remove('hidden');
       renderizarCatalogo();
     }
 
@@ -394,46 +392,53 @@ function renderizarCatalogo(filtro = "") {
 
     if (itemNoCarrinho) {
       controlesHTML = `
-        <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl overflow-hidden shadow-inner">
-          <button onclick="alterarQuantidade(${p.id}, -1, event)" class="px-3 py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
-            <i data-lucide="minus" class="w-4 h-4"></i>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="alterarQuantidade(${p.id}, -1, event)">
+            <i data-lucide="minus" style="width:14px;height:14px;"></i>
           </button>
-          
-          <input 
-            type="tel" 
-            value="${itemNoCarrinho.qtd}" 
+          <input
+            type="tel"
+            class="qty-input"
+            value="${itemNoCarrinho.qtd}"
             onchange="alterarQuantidadeManual(${p.id}, this.value)"
             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-            class="w-12 py-2 bg-white font-black text-blue-900 text-sm text-center border-x border-slate-300 focus:outline-none focus:bg-blue-50"
           />
-
-          <button onclick="alterarQuantidade(${p.id}, 1, event)" class="px-3 py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+          <button class="qty-btn" onclick="alterarQuantidade(${p.id}, 1, event)">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i>
           </button>
         </div>
       `;
     } else {
       controlesHTML = `
-        <button onclick="alterarQuantidade(${p.id}, 1, event)" class="relative bg-blue-900 text-white p-3 rounded-xl hover:bg-blue-800 transition-all hover:scale-105 shadow-md group">
-          <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-          <span class="absolute -bottom-1 -right-1 bg-white text-blue-900 rounded-full flex items-center justify-center w-4 h-4 shadow-sm group-hover:bg-blue-100 transition-colors">
-            <i data-lucide="plus" class="w-3 h-3 stroke-[3px]"></i>
-          </span>
+        <button class="btn-add" onclick="alterarQuantidade(${p.id}, 1, event)" style="position:relative;">
+          <i data-lucide="shopping-cart" style="width:20px;height:20px;"></i>
+          <span style="
+            position:absolute; bottom:-4px; right:-4px;
+            background:#fff; color:#1e3a8a;
+            border-radius:50%; width:16px; height:16px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:11px; font-weight:900;
+            box-shadow:0 1px 4px rgba(0,0,0,0.2);
+          ">+</span>
         </button>
       `;
     }
 
+    const estoqueVal = p.estoque_atual !== undefined ? p.estoque_atual : null;
+    const estoqueOk  = estoqueVal === null || estoqueVal > 0;
+    const estoqueHTML = estoqueVal !== null
+      ? `<p class="product-stock ${estoqueOk ? 'stock-ok' : 'stock-out'}">Estoque: ${estoqueVal}</p>`
+      : '';
+
     grid.innerHTML += `
-      <div class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group">
-        <div class="h-40 overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
-          <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply">
-        </div>
-        <div class="p-5">
-          <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
-          <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">${p.descricao || ''}</p>
-          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque: ${p.estoque_atual !== undefined ? p.estoque_atual : '?'}</p>
-          <div class="flex justify-between items-center h-10 mt-3">
-            <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
+      <div class="product-card">
+        <img src="${p.imagem_url}" class="product-img" onclick="alterarQuantidade(${p.id}, 1, event)">
+        <div class="product-info">
+          <h4 class="product-name">${p.nome}</h4>
+          <p class="product-desc">${p.descricao || ''}</p>
+          ${estoqueHTML}
+          <div class="product-footer">
+            <span class="product-price">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
           </div>
         </div>
