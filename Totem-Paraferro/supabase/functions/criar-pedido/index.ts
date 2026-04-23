@@ -70,7 +70,8 @@ serve(async (req) => {
       cliente_id,
       total: totalCalculado, // Total seguro calculado pelo servidor
       itens_comprados: itensProcessados,
-      status: 'pendente'
+      status: 'pendente',
+      metodo_pagamento: 'Aguardando Pagamento' // Impede o erro de not-null constraint
     };
 
     // Insere o pedido na tabela do Supabase
