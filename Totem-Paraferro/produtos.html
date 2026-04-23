@@ -4,296 +4,179 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Totem Paraferro - Autoatendimento (Produtos)</title>
-    
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
-    <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/output.css" />
   </head>
-  <body class="
-    text-blue-900
-    h-screen
-    overflow-hidden
-    select-none
-    bg-slate-50
-  ">
-    <div class="
-    flex
-    h-full
-    w-full
-    bg-slate-50
-    overflow-hidden
-  ">
-      <div class="
-    flex-1
-    relative
-    bg-slate-50
-    overflow-y-auto
-  " id="main-content">
-        <section id="screen-produtos" class="
-    h-full
-    flex
-    flex-col
-    fade-in
-    bg-slate-50
-  ">
-          <div class="
-    p-4
-    md:p-6
-    bg-white
-    border-b
-    border-slate-200
-    flex
-    justify-between
-    items-center
-    sticky
-    top-0
-    z-30
-    shadow-sm
-  ">
-            <div class="
-    flex
-    items-center
-    gap-3
-  ">
-              <div class="
-    w-10
-    h-10
-    md:w-12
-    h-12
-    bg-blue-100
-    rounded-full
-    flex
-    items-center
-    justify-center
-    text-blue-900
-    shrink-0
-  ">
-                <i data-lucide="user"></i>
-              </div>
-              <div>
-                <h2 class="
-    text-lg
-    md:text-xl
-    font-bold
-    text-blue-900
-    leading-tight
-  " id="display-cliente-nome">
-                  ...
-                </h2>
-                <button onclick="reiniciarTotem()" class="
-    text-[10px]
-    md:text-xs
-    text-red-500
-    uppercase
-    font-bold
-    tracking-widest
-    hover:underline
-    mt-1
-  ">
-                  Sair / Nova Venda
-                </button>
-              </div>
-            </div>
 
-            <img
-              src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
-              alt="Logo Paraferro"
-              class="
-    w-32
-    md:w-44
-    absolute
-    top-1/2
-    left-1/2
-    -translate-y-1/2
-    -translate-x-1/2
-    z-50
-  "
+  <body style="margin:0; padding:0; height:100vh; overflow:hidden; font-family:'Inter',sans-serif; background:#f8fafc;">
+
+    <!-- Layout raiz: Sidebar + Conteúdo -->
+    <div style="display:flex; height:100vh; width:100%; overflow:hidden;">
+
+      <!-- ============================================
+           SIDEBAR ESQUERDA (Navegação + Logo + Usuário)
+           ============================================ -->
+      <aside class="sidebar-catalogo">
+
+        <!-- Logo -->
+        <div class="sidebar-logo">
+          <img
+            src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
+            alt="Logo Paraferro"
+            style="width:130px; object-fit:contain;"
+          />
+        </div>
+
+        <!-- Título da seção de navegação -->
+        <p class="sidebar-nav-title">Categorias</p>
+
+        <!-- Botões de categoria (gerado pelo JS) -->
+        <nav class="sidebar-nav" id="nav-categorias">
+          <button
+            class="cat-btn ativo"
+            id="cat-btn-todos"
+            onclick="filtrarPorCategoria('todos')"
+          >
+            Todos os Materiais
+          </button>
+          <!-- Categorias dinâmicas são inseridas aqui pelo JS -->
+        </nav>
+
+        <!-- Rodapé: Sair -->
+        <div class="sidebar-footer">
+          <!-- Elemento oculto mantido para compatibilidade com o JS (verificarSessaoCliente) -->
+          <span id="display-cliente-nome" style="display:none;"></span>
+          <button
+            onclick="reiniciarTotem()"
+            style="
+              display:flex; align-items:center; gap:8px;
+              color:#f87171; font-weight:900; font-size:13px;
+              letter-spacing:0.05em; text-transform:uppercase;
+              background:none; border:none; cursor:pointer; padding:0;
+            "
+          >
+            <i data-lucide="door-open" style="width:18px; height:18px; color:#f87171;"></i>
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- ============================================
+           ÁREA CENTRAL (Busca + Produtos + Carrinho)
+           ============================================ -->
+      <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
+        <!-- Barra de Pesquisa -->
+        <div style="padding:16px 16px 10px; background:#f8fafc; flex-shrink:0;">
+          <div style="position:relative;">
+            <i
+              data-lucide="search"
+              style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; width:18px; height:18px;"
+            ></i>
+            <input
+              id="search-catalogo"
+              type="text"
+              placeholder="Pesquisar produto..."
+              oninput="filtrarCatalogo(this.value)"
+              style="
+                width:100%; box-sizing:border-box;
+                padding:13px 14px 13px 42px;
+                border:2px solid #e2e8f0;
+                border-radius:16px;
+                font-size:14px;
+                font-family:'Inter',sans-serif;
+                color:#1e3a8a;
+                background:#fff;
+                outline:none;
+                transition:border-color 0.2s;
+              "
+              onfocus="this.style.borderColor='#1e3a8a'"
+              onblur="this.style.borderColor='#e2e8f0'"
             />
+          </div>
+        </div>
 
-            <div class="
-    flex
-    items-center
-    gap-3
-    md:gap-4
-    justify-end
-  ">
-              <button
-                onclick="irParaPagamento()"
-                class="
-    relative
-    p-3
-    md:p-4
-    bg-blue-900
-    text-white
-    rounded-full
-    shadow-lg
-    hover:bg-blue-800
-    active:scale-95
-    transition-all
-    z-50
-  "
-                id="btn-carrinho-topo"
-              >
-                <i data-lucide="shopping-cart" class="
-    w-5
-    h-5
-    md:w-7
-    md:h-7
-  "></i>
-                <span
-                  id="cart-badge"
-                  class="
-    absolute
-    -top-1
-    -right-1
-    bg-red-600
-    text-white
-    text-[10px]
-    font-bold
-    min-w-[20px]
-    h-5
-    md:min-w-[24px]
-    md:h-6
-    flex
-    items-center
-    justify-center
-    rounded-full
-    border-2
-    border-white
-    hidden
-  "
-                >0</span>
-              </button>
+        <!-- Título da Categoria Ativa -->
+        <div style="padding:0 16px 10px; flex-shrink:0;">
+          <h2
+            id="titulo-categoria"
+            style="font-size:18px; font-weight:900; color:#1e3a8a; margin:0;"
+          >
+            Todos os Materiais
+          </h2>
+        </div>
+
+        <!-- Grid de Produtos (scrollável) -->
+        <div style="flex:1; overflow-y:auto; padding:0 16px 12px;">
+
+          <!-- Sem spinner de loading: produtos aparecem direto no grid -->
+          <div
+            id="grid-catalogo"
+            style="display:none; grid-template-columns:1fr 1fr; gap:12px;"
+          ></div>
+
+        </div>
+
+        <!-- ============================================
+             BARRA INFERIOR DO CARRINHO
+             ============================================ -->
+        <div class="cart-bar">
+          <!-- Ícone + Total -->
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="position:relative;">
+              <i data-lucide="shopping-cart" style="width:28px; height:28px; color:#fff;"></i>
+              <span
+                id="cart-badge"
+                style="
+                  display:none;
+                  position:absolute; top:-8px; right:-8px;
+                  background:#ef4444; color:#fff;
+                  font-size:10px; font-weight:900;
+                  min-width:18px; height:18px;
+                  border-radius:999px;
+                  align-items:center; justify-content:center;
+                  border:2px solid #1e3a8a;
+                "
+              >0</span>
+            </div>
+            <div>
+              <p style="color:#93c5fd; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Total do pedido</p>
+              <p style="color:#fff; font-size:22px; font-weight:900; margin:0; line-height:1.2;">
+                R$ <span id="cart-total-rodape">0.00</span>
+              </p>
             </div>
           </div>
 
-          <div class="
-    flex-1
-    flex
-    flex-col
-    overflow-hidden
-    relative
-  ">
-            <div class="
-    flex-1
-    flex
-    flex-col
-    p-4
-    md:p-6
-    overflow-y-auto
-    bg-slate-50
-  ">
-              <div class="
-    relative
-    mb-6
-    group
-  ">
-                <i data-lucide="search" class="
-    absolute
-    left-5
-    top-1/2
-    -translate-y-1/2
-    text-slate-400
-    group-focus-within:text-blue-900
-    transition-colors
-  "></i>
-                <input
-                  id="search-catalogo"
-                  type="text"
-                  placeholder="O que você está procurando hoje?"
-                  class="
-    w-full
-    pl-14
-    pr-6
-    py-4
-    border-2
-    border-slate-300
-    bg-white
-    text-blue-900
-    shadow-sm
-    rounded-2xl
-    text-base
-    md:text-lg
-    focus:border-blue-900
-    outline-none
-    transition-all
-    placeholder-slate-400
-  "
-                  oninput="filtrarCatalogo(this.value)"
-                />
-              </div>
+          <!-- Botão Ver Carrinho -->
+          <button
+            id="btn-carrinho-topo"
+            onclick="irParaPagamento()"
+            class="cart-bar-btn"
+          >
+            <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
+            VER CARRINHO
+          </button>
+        </div>
 
-              <!-- Loading spinner -->
-              <div id="loading-produtos" class="
-    flex
-    flex-col
-    items-center
-    justify-center
-    py-20
-    text-blue-900
-  ">
-                  <i data-lucide="loader-2" class="
-    w-8
-    h-8
-    animate-spin
-    mb-4
-  "></i>
-                  <p class="font-bold">Carregando catálogo...</p>
-              </div>
+      </div><!-- fim área central -->
+    </div><!-- fim layout raiz -->
 
-              <div id="grid-catalogo" class="
-    grid
-    grid-cols-2
-    gap-4
-    md:gap-6
-    pb-20
-    hidden
-  "></div>
-            </div>
-          </div>
+    <!-- Keyframe para o spinner -->
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 
-          <div class="
-    bg-white
-    border-t-2
-    border-slate-100
-    px-8
-    py-6
-    flex
-    justify-between
-    items-center
-    z-30
-    shrink-0
-    shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.08)]
-  ">
-            <span class="
-    text-2xl
-    md:text-3xl
-    font-black
-    text-blue-900
-    tracking-tight
-  ">Total</span>
-            <span class="
-    text-2xl
-    md:text-3xl
-    font-black
-    text-blue-900
-    tracking-tight
-  ">R$ <span id="cart-total-rodape">0.00</span></span>
-          </div>
-        </section>
-      </div>
-    </div>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
       lucide.createIcons();
-      window.onload = function() {
-          carregarProdutosDoBanco();
-          verificarSessaoCliente();
-          carregarCarrinhoDaSessao();
+      window.onload = function () {
+        verificarSessaoCliente();
+        carregarCarrinhoDaSessao();
+        carregarProdutosDoBanco();
       };
     </script>
   </body>

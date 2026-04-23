@@ -8,6 +8,7 @@ let state = {
 };
 
 let catalogoProdutos = [];
+let categoriaAtiva = 'todos'; // Controla a categoria selecionada no sidebar
 
 // ==========================================
 // FUNÇÕES DE SESSÃO E INICIALIZAÇÃO
@@ -225,6 +226,7 @@ async function carregarProdutosDoBanco() {
       .from('produtos')
       .select('*')
       .eq('ativo', true)
+      .order('categoria')
       .order('nome');
 
     if (error) {
@@ -233,13 +235,43 @@ async function carregarProdutosDoBanco() {
       return;
     }
 
-    catalogoProdutos = data;
+    // Normaliza categorias (trim para remover espaços extras do banco)
+    catalogoProdutos = data.map(p => ({
+      ...p,
+      categoria: p.categoria ? p.categoria.trim() : null,
+      _categoriaKey: p.categoria ? p.categoria.trim().toLowerCase() : null
+    }));
+
+    // --- Gera os botões de categoria na sidebar ---
+    const nav = document.getElementById('nav-categorias');
+    if (nav) {
+      // Deduplica por chave lowercase para eliminar "Cimento" vs "Cimentos " etc.
+      const categoriasMap = new Map();
+      catalogoProdutos.forEach(p => {
+        if (p._categoriaKey && !categoriasMap.has(p._categoriaKey)) {
+          const label = p.categoria.charAt(0).toUpperCase() + p.categoria.slice(1);
+          categoriasMap.set(p._categoriaKey, label);
+        }
+      });
+
+      [...categoriasMap.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([chave, label]) => {
+        const btn = document.createElement('button');
+        btn.id = `cat-btn-${chave}`;
+        btn.className = 'cat-btn';
+        btn.textContent = label;
+        btn.onclick = () => filtrarPorCategoria(chave);
+        nav.appendChild(btn);
+      });
+    }
+    // --- Fim da geração ---
 
     const loading = document.getElementById('loading-produtos');
     if (loading) loading.classList.add('hidden');
 
     const grid = document.getElementById('grid-catalogo');
     if (grid) {
+      // Usa display:grid para compatibilidade com o layout inline do totem portrait
+      grid.style.display = 'grid';
       grid.classList.remove('hidden');
       renderizarCatalogo();
     }
@@ -308,16 +340,48 @@ function alterarQuantidadeManual(id, valor) {
   }
 }
 
+function filtrarPorCategoria(cat) {
+  categoriaAtiva = cat;
+
+  // Atualiza estilos dos botões da sidebar usando classList (CSS puro)
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.classList.remove('ativo');
+  });
+  const btnAtivo = document.getElementById(
+    cat === 'todos' ? 'cat-btn-todos' : `cat-btn-${cat}`
+  );
+  if (btnAtivo) btnAtivo.classList.add('ativo');
+
+  // Atualiza título da seção com label formatado
+  const titulo = document.getElementById('titulo-categoria');
+  if (titulo) {
+    if (cat === 'todos') {
+      titulo.textContent = 'Todos os Materiais';
+    } else {
+      // Pega o label exibido no botão ativo
+      titulo.textContent = btnAtivo ? btnAtivo.textContent : cat;
+    }
+  }
+
+  // Limpa o campo de busca e re-renderiza
+  const searchInput = document.getElementById('search-catalogo');
+  if (searchInput) searchInput.value = '';
+  renderizarCatalogo();
+}
+
 function renderizarCatalogo(filtro = "") {
   const grid = document.getElementById("grid-catalogo");
   if (!grid) return;
   grid.innerHTML = "";
 
-  const filtrados = catalogoProdutos.filter(
-    (p) =>
+  // Filtra por categoria ativa (usa _categoriaKey normalizado) e pelo texto de busca
+  const filtrados = catalogoProdutos.filter((p) => {
+    const matchCategoria = categoriaAtiva === 'todos' || p._categoriaKey === categoriaAtiva;
+    const matchBusca =
       p.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-      (p.descricao && p.descricao.toLowerCase().includes(filtro.toLowerCase())),
-  );
+      (p.descricao && p.descricao.toLowerCase().includes(filtro.toLowerCase()));
+    return matchCategoria && matchBusca;
+  });
 
   if (filtrados.length === 0) {
     grid.innerHTML = `<div class="col-span-full text-center py-20 text-slate-400">Nenhum produto encontrado.</div>`;
@@ -399,9 +463,12 @@ function atualizarCarrinhoUI() {
   if (badge) {
     if (totalQuantidadeItens > 0) {
       badge.innerText = totalQuantidadeItens;
+      // Suporta tanto hidden class (Tailwind) quanto style inline
       badge.classList.remove("hidden");
+      badge.style.display = 'flex';
     } else {
       badge.classList.add("hidden");
+      badge.style.display = 'none';
     }
   }
 }
@@ -409,7 +476,9 @@ function atualizarCarrinhoUI() {
 function animarParaCarrinho(id, event) {
   if (!event) return;
   const produto = catalogoProdutos.find((p) => p.id === id);
+  // Aponta para o botão de carrinho na nova barra inferior
   const cartBtn = document.getElementById("btn-carrinho-topo");
+  if (!cartBtn) return;
 
   const flyingImg = document.createElement("img");
   flyingImg.src = produto.imagem_url;
