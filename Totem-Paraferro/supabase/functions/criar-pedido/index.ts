@@ -21,7 +21,7 @@ serve(async (req) => {
 
     // Recebe os dados do corpo da requisição
     const body = await req.json();
-    const { cliente_id, itens_comprados } = body;
+    const { cliente_id, itens_comprados, numero_pedido } = body;
     // metodo_pagamento é opcional agora
 
     // Validação básica de segurança
@@ -40,7 +40,7 @@ serve(async (req) => {
     
     const { data: produtosDb, error: erroProdutos } = await supabaseClient
       .from('produtos')
-      .select('id, preco')
+      .select('id, preco, estoque_atual')
       .in('id', idsProdutos);
 
     if (erroProdutos || !produtosDb) {
@@ -53,6 +53,13 @@ serve(async (req) => {
       const produtoOficial = produtosDb.find((p) => p.id === item.id);
       if (!produtoOficial) {
         throw new Error(`Produto não encontrado no catálogo: ID ${item.id}`);
+      }
+      
+      // Validação de estoque (Antifraude)
+      if (produtoOficial.estoque_atual !== null && produtoOficial.estoque_atual !== undefined) {
+        if (item.qtd > produtoOficial.estoque_atual) {
+          throw new Error(`Sem estoque suficiente para o produto: ${item.nome || item.id}`);
+        }
       }
       
       const totalItem = produtoOficial.preco * item.qtd;
@@ -74,12 +81,19 @@ serve(async (req) => {
       metodo_pagamento: 'Aguardando Pagamento' // Impede o erro de not-null constraint
     };
 
-    // Insere o pedido na tabela do Supabase
-    const { data, error } = await supabaseClient
-      .from('pedidos')
-      .insert([pedido])
-      .select()
-      .single();
+    // Insere ou Atualiza o pedido na tabela do Supabase
+    let query = supabaseClient.from('pedidos');
+    let response;
+    
+    if (numero_pedido) {
+      // Upsert: Atualiza pedido existente
+      response = await query.update(pedido).eq('numero_pedido', numero_pedido).select().single();
+    } else {
+      // Insert: Cria novo pedido
+      response = await query.insert([pedido]).select().single();
+    }
+    
+    const { data, error } = response;
 
     if (error) {
       throw error;

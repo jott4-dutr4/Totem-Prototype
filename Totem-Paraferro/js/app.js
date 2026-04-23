@@ -251,10 +251,12 @@ async function carregarProdutosDoBanco() {
 
 function alterarQuantidade(id, delta, event = null) {
   const index = state.carrinho.findIndex((x) => x.id === id);
+  const p = catalogoProdutos.find((x) => x.id === id);
+  const estoqueAtual = p.estoque_atual !== undefined ? p.estoque_atual : 999;
 
   if (index === -1) {
     if (delta > 0) {
-      const p = catalogoProdutos.find((x) => x.id === id);
+      if (1 > estoqueAtual) return alert("Produto sem estoque no momento.");
       state.carrinho.push({ ...p, qtd: 1, total: p.preco });
       if (event) animarParaCarrinho(id, event);
     }
@@ -267,6 +269,7 @@ function alterarQuantidade(id, delta, event = null) {
         state.carrinho.splice(index, 1);
       }
     } else {
+      if (novaQtd > estoqueAtual) return alert("Quantidade máxima em estoque atingida.");
       item.qtd = novaQtd;
       item.total = item.qtd * item.preco;
       if (delta > 0 && event) animarParaCarrinho(id, event);
@@ -275,12 +278,14 @@ function alterarQuantidade(id, delta, event = null) {
 
   salvarSessao();
   atualizarCarrinhoUI();
-  renderizarCatalogo(document.getElementById("search-catalogo").value);
+  renderizarCatalogo(document.getElementById("search-catalogo")?.value || "");
 }
 
 function alterarQuantidadeManual(id, valor) {
   const novaQtd = parseInt(valor, 10);
   const index = state.carrinho.findIndex((x) => x.id === id);
+  const p = catalogoProdutos.find((x) => x.id === id);
+  const estoqueAtual = p.estoque_atual !== undefined ? p.estoque_atual : 999;
 
   if (index !== -1) {
     const item = state.carrinho[index];
@@ -289,12 +294,17 @@ function alterarQuantidadeManual(id, valor) {
         state.carrinho.splice(index, 1);
       }
     } else {
-      item.qtd = novaQtd;
+      if (novaQtd > estoqueAtual) {
+        alert("Quantidade máxima em estoque atingida.");
+        item.qtd = estoqueAtual;
+      } else {
+        item.qtd = novaQtd;
+      }
       item.total = item.qtd * item.preco;
     }
     salvarSessao();
     atualizarCarrinhoUI();
-    renderizarCatalogo(document.getElementById("search-catalogo").value);
+    renderizarCatalogo(document.getElementById("search-catalogo")?.value || "");
   }
 }
 
@@ -356,8 +366,9 @@ function renderizarCatalogo(filtro = "") {
         </div>
         <div class="p-5">
           <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
-          <p class="text-[10px] text-slate-500 uppercase font-bold mb-4">${p.descricao || ''}</p>
-          <div class="flex justify-between items-center h-10">
+          <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">${p.descricao || ''}</p>
+          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque: ${p.estoque_atual !== undefined ? p.estoque_atual : '?'}</p>
+          <div class="flex justify-between items-center h-10 mt-3">
             <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
           </div>
@@ -452,6 +463,7 @@ function renderizarResumoCompleto() {
         <div class="flex-1">
           <h4 class="font-bold text-blue-900 leading-tight">${item.nome}</h4>
           <p class="text-sm font-black text-blue-800 mt-1">R$ ${item.total.toFixed(2)}</p>
+          <p class="text-[11px] font-bold mt-1 ${item.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque disponível: ${item.estoque_atual !== undefined ? item.estoque_atual : '?'}</p>
           
           <div class="flex items-center gap-3 mt-3">
             <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
@@ -506,7 +518,7 @@ function removerItemResumo(idx) {
 
 async function irParaPagamentoReal() {
   state.metodoPagamentoSelecionado = null;
-  
+
   const btn = document.querySelector('button[onclick="irParaPagamentoReal()"]');
   const textoOrig = btn ? btn.innerText : "";
   if (btn) {
@@ -516,7 +528,8 @@ async function irParaPagamentoReal() {
 
   const pedido = {
     cliente_id: state.cliente.id,
-    itens_comprados: state.carrinho
+    itens_comprados: state.carrinho,
+    numero_pedido: state.pedidoAtual ? state.pedidoAtual.numero_pedido : undefined
   };
 
   try {
@@ -653,7 +666,7 @@ async function finalizarVenda() {
 
 function gerarNotaVisual() {
   if (!document.getElementById("nota-cliente")) return;
-  
+
   if (state.pedidoAtual && state.pedidoAtual.numero_pedido) {
     const numFormatado = String(state.pedidoAtual.numero_pedido).padStart(4, '0');
     document.getElementById("nota-numero-pedido").innerText = `#${numFormatado}`;

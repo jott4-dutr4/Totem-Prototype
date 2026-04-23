@@ -39,6 +39,29 @@ serve(async (req) => {
       throw error;
     }
 
+    // Dá baixa real no estoque dos produtos
+    if (data && data.itens_comprados) {
+      for (const item of data.itens_comprados) {
+        // Busca o estoque atualizado
+        const { data: produto, error: errProd } = await supabaseClient
+          .from('produtos')
+          .select('estoque_atual')
+          .eq('id', item.id)
+          .single();
+
+        if (!errProd && produto && produto.estoque_atual !== null && produto.estoque_atual !== undefined) {
+          const novoEstoque = produto.estoque_atual - item.qtd;
+          // Atualiza o estoque no banco
+          await supabaseClient
+            .from('produtos')
+            .update({ estoque_atual: novoEstoque })
+            .eq('id', item.id);
+        }
+      }
+    }
+
+    // Verificação de erro removida
+
     return new Response(
       JSON.stringify({ success: true, pedido: data }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
