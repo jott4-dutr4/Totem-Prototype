@@ -1,3 +1,14 @@
+<!-- 
+  📄 ARQUIVO: index.html
+  🧠 PROPÓSITO: Tela de boas-vindas do Totem.
+  
+  Esta é a "porta de entrada" da loja. O único objetivo dela é coletar o CPF 
+  do cliente e mandar para o app.js verificar se ele já existe no banco.
+  
+  💡 DICA DE MELHORIA FUTURA: Colocar uma validação de máscara "ao vivo" mais bonita, 
+  que pinte a borda de vermelho se o CPF estiver faltando números, antes mesmo 
+  de clicar no botão de continuar.
+-->
 <!doctype html>
 <html lang="pt-BR">
 
@@ -77,6 +88,9 @@
             Sua compra rápida - Sem Filas - Retira imediata!
           </p>
 
+          <!-- ========================================== -->
+          <!-- BLOCO: ENTRADA DE DADOS DO USUÁRIO         -->
+          <!-- ========================================== -->
           <div class="text-left">
             <label class="
     block
@@ -95,6 +109,11 @@
               oninput="mascaraCPF(this)" />
           </div>
 
+          <!-- ========================================== -->
+          <!-- BLOCO: AÇÃO DO USUÁRIO                     -->
+          <!-- ========================================== -->
+          <!-- ⚡ EVENTO IMPORTANTE: onclick -->
+          <!-- Quando o botão é clicado, inicia o processo de verificação no banco de dados -->
           <button onclick="verificarCPF()"
             class="
     btn-primary
@@ -109,9 +128,13 @@
       </section>
     </div>
   </div>
+  
+  <!-- ⚙️ SCRIPTS DA APLICAÇÃO -->
+  <!-- A ordem importa: primeiro o banco (supabase-config), depois a inteligência (app.js) -->
   <script src="js/supabase-config.js"></script>
   <script src="js/app.js"></script>
   <script>
+    // Inicializa todos os ícones <i data-lucide="..."> da tela na hora que carrega.
     lucide.createIcons();
   </script>
 </body>

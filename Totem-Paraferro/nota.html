@@ -1,3 +1,11 @@
+<!-- 
+  📄 ARQUIVO: nota.html
+  🧠 PROPÓSITO: Tela de sucesso e Recibo (Cupom).
+  
+  A venda já foi realizada (banco de dados já foi atualizado).
+  Aqui é puramente visual. Mostramos a "NFC-e" na tela com a opção 
+  do cliente imprimir. Se o pagamento foi PIX, mostramos o QR Code.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -8,7 +16,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+    
+    <!-- Biblioteca específica desta tela: qrcode.js. 
+         Usada para desenhar o quadradinho do PIX caso seja a forma escolhida -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/output.css" />
@@ -227,6 +239,7 @@
       lucide.createIcons();
       window.onload = function() {
           verificarSessaoCliente();
+          // Preenche os dados visuais baseados na sessão ANTES dela ser zerada
           gerarNotaVisual();
       };
     </script>

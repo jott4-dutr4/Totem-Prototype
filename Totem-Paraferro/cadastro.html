@@ -1,3 +1,10 @@
+<!-- 
+  📄 ARQUIVO: cadastro.html
+  🧠 PROPÓSITO: Tela para novos clientes.
+  
+  Essa tela é aberta caso o CPF digitado na index.html NÃO seja encontrado 
+  no nosso banco do Supabase. A estrela daqui é a integração com o ViaCEP.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -293,6 +300,9 @@
                 />
               </div>
 
+              <!-- 🛡️ CAMPO OCULTO (Hidden) -->
+              <!-- Lembra que a gente guardou o CPF que ele já digitou antes de vir pra cá? -->
+              <!-- Esse campo invisível recebe esse valor, pra depois salvar no banco sem a pessoa ver. -->
               <input type="hidden" id="cad-cpf" />
 
               <button
@@ -331,13 +341,20 @@
         </section>
       </div>
     </div>
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
       lucide.createIcons();
-      // Preencher o input hidden com o CPF vindo da sessão (se houver)
+      
+      // ==========================================
+      // 🧠 LÓGICA DE TELA LOCAL
+      // ==========================================
+      // Assim que a tela carrega, tentamos buscar se tem algum CPF esperando 
+      // lá na memória do navegador (no sessionStorage).
       const cpfSessao = sessionStorage.getItem('cpfEmCadastro');
       if (cpfSessao) {
+          // Se achamos o CPF, guardamos dentro daquele 'input type="hidden"' lá em cima
           document.getElementById('cad-cpf').value = cpfSessao;
       }
     </script>

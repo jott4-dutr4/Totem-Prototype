@@ -1,3 +1,10 @@
+<!-- 
+  📄 ARQUIVO: resumo.html
+  🧠 PROPÓSITO: Tela de revisão do carrinho.
+  
+  Aqui o cliente confere tudo o que pegou, pode alterar as quantidades 
+  ou até remover itens antes de ir para o pagamento. 
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -178,6 +185,7 @@
       window.onload = function() {
           verificarSessaoCliente();
           carregarCarrinhoDaSessao();
+          // Chama a função que desenha a lista toda na tela
           renderizarResumoCompleto();
       };
     </script>

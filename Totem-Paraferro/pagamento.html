@@ -1,3 +1,11 @@
+<!-- 
+  📄 ARQUIVO: pagamento.html
+  🧠 PROPÓSITO: Tela de checkout (Finalizar a Compra).
+  
+  Aqui o cliente vê o resumão na lateral e escolhe como vai pagar. 
+  Esta tela tem o botão mais importante do sistema: "CONCLUIR COMPRA", 
+  que joga de fato tudo para o banco de dados e gera a venda.
+-->
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -78,6 +86,7 @@
                 </div>
 
                 <div class="space-y-4">
+                  <!-- ⚡ EVENTO IMPORTANTE: Cada botão chama selecionarPagamento passando um texto para o app.js guardar no estado (memória). -->
                   <button
                     onclick="selecionarPagamento('PIX')"
                     id="btn-pag-pix"
@@ -295,6 +304,9 @@
                 </div>
               </div>
 
+              <!-- ========================================== -->
+              <!-- COLUNA DIREITA: RESUMO DO PEDIDO           -->
+              <!-- ========================================== -->
               <div class="lg:pl-10">
                 <div class="
     bg-white
@@ -395,6 +407,10 @@
             >
               VOLTAR
             </button>
+            
+            <!-- ⚡ BOTÃO DE AÇÃO PRINCIPAL -->
+            <!-- Começa desabilitado (disabled). Só liga quando o usuário clica em alguma forma de pagamento -->
+            <!-- Ao clicar, chama finalizarVenda() no app.js, onde a mágica do banco de dados acontece. -->
             <button
               onclick="finalizarVenda()"
               id="btn-finalizar-venda-novo"
@@ -421,6 +437,7 @@
       window.onload = function() {
           verificarSessaoCliente();
           carregarCarrinhoDaSessao();
+          // Pinta os valores de Total corretos e a lista de itens
           atualizarResumoPedidoUI();
       };
     </script>
