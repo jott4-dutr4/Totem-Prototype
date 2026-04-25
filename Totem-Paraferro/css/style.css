@@ -2,95 +2,64 @@
 
 @layer components {
   .btn-primary {
-    @apply
-      bg-blue-900
-      text-white
-      font-black
-      py-5
-      rounded-2xl
-      shadow-lg
-      shadow-blue-900/20
-      transition-all;
+    @apply bg-blue-900 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-900/20 transition-all;
   }
 
   .btn-secondary {
-    @apply
-      bg-slate-100
-      text-blue-900
-      border
-      border-slate-300
-      font-bold
-      py-5
-      rounded-2xl
-      transition-all;
+    @apply bg-slate-100 text-blue-900 border border-slate-300 font-bold py-5 rounded-2xl transition-all;
   }
 
   .input-padrao {
-    @apply
-      w-full
-      text-center
-      text-3xl
-      font-bold
-      tracking-tighter
-      border-2
-      border-slate-300
-      bg-slate-50
-      text-blue-900
-      rounded-2xl
-      p-5
-      focus:outline-none
-      focus:border-blue-900
-      transition-all
-      placeholder-slate-400
-      shadow-inner;
+    @apply w-full text-center text-3xl font-bold tracking-tighter border-2 border-slate-300 bg-slate-50 text-blue-900 rounded-2xl p-5 focus:outline-none focus:border-blue-900 transition-all placeholder-slate-400 shadow-inner;
   }
 
   .card-padrao {
-    @apply
-      bg-white
-      px-8
-      py-10
-      rounded-3xl
-      shadow-xl
-      border
-      border-slate-200
-      text-center;
+    @apply bg-white px-8 py-10 rounded-3xl shadow-xl border border-slate-200 text-center;
   }
 }
 
 body {
   font-family: "Inter", sans-serif;
 }
+
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
 }
+
 .product-card:active {
   transform: scale(0.98);
 }
+
 /* Custom scrollbar for inner containers */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
+
 /* Animação do item voando para o carrinho */
 .item-voador {
   position: fixed;
@@ -100,4 +69,118 @@ body {
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   🖨️ IMPRESSÃO TÉRMICA - Cupom Fiscal 80mm
+   Estratégia: desativar o layout de tela (flex, overflow, altura
+   fixa) nos containers pai e deixar o #printable-area fluir
+   normalmente em 80mm, sem position:absolute (que causa clipping).
+   ============================================================ */
+@media print {
+
+  /* Esconde os botões (não precisam aparecer no cupom) */
+  .no-print {
+    display: none !important;
+  }
+
+  /* ── Papel e margens ── */
+  html,
+  body {
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    /* Deixa o conteúdo crescer normalmente (rolo contínuo) */
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* ── Desfaz o layout de tela dos containers pai ──
+     O body>div é o flex wrapper da tela inteira.
+     Sem isso, o #printable-area fica preso no overflow:auto do pai. */
+  body>div {
+    display: block !important;
+    width: 80mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* O #main-content tem overflow-y:auto — precisamos abrir isso */
+  #main-content {
+    display: block !important;
+    width: 80mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* O #screen-nota é flex com justify-center items-center —
+     isso centra na tela mas atrapalha a impressão */
+  #screen-nota {
+    display: block !important;
+    width: 80mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* ── O cupom em si ── */
+  #printable-area {
+    /* Fluxo normal — sem position:absolute que causava o clipping */
+    position: static !important;
+    display: block !important;
+    width: 76mm !important;
+    max-width: 76mm !important;
+    margin: 0 !important;
+    padding: 2mm 3mm !important;
+
+    /* Sem decorações visuais */
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+
+    /* Fonte padrão de cupom fiscal */
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+    color: black !important;
+
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+
+  /* Remove a barra azul decorativa do topo do card */
+  #printable-area>div:first-child {
+    display: none !important;
+  }
+
+  /* Tabela de itens ocupa a largura toda */
+  #printable-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  /* Textos coloridos viram preto (impressora térmica não tem cor) */
+  #printable-area .text-blue-900,
+  #printable-area h2,
+  #printable-area span,
+  #printable-area p,
+  #printable-area td {
+    color: black !important;
+  }
+
+  /* Sem quebra de página no meio do cupom */
+  #printable-area {
+    page-break-before: avoid;
+    page-break-after: avoid;
+  }
 }

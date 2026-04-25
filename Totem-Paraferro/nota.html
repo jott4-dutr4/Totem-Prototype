@@ -24,6 +24,19 @@
     <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/output.css" />
+
+    <!-- 
+      🖨️ ESTILOS EXCLUSIVOS DE IMPRESSÃO TÉRMICA
+      O @page define o tamanho físico do papel para o driver da impressora.
+      80mm de largura com altura automática = rolo contínuo de cupom.
+      Margens zeradas para aproveitar toda a área útil do papel.
+    -->
+    <style>
+      @page {
+        size: 80mm auto;   /* Largura do papel térmico, altura automática (rolo) */
+        margin: 0mm;       /* Sem margens — o cupom controla seu próprio espaço */
+      }
+    </style>
   </head>
   <body class="
     text-blue-900
