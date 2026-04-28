@@ -303,11 +303,11 @@
       // ==========================================
       // 🧠 INICIALIZAÇÃO DA TELA (window.onload)
       // ==========================================
-      // Assim que todo o HTML for carregado, rodamos essas três funções:
       window.onload = function() {
-          carregarProdutosDoBanco(); // 1. Vai no Supabase baixar os produtos
-          verificarSessaoCliente();  // 2. Confere se tem alguém logado (se não tiver, joga pra index)
-          carregarCarrinhoDaSessao(); // 3. Se a pessoa já tinha algo no carrinho (ex: foi pra tela de resumo e voltou), a gente restaura na tela
+          carregarSessao();              // 1. Carrega estado da sessão (carrinho, cliente se houver)
+          carregarProdutosDoBanco();     // 2. Vai no Supabase baixar os produtos
+          carregarCarrinhoDaSessao();    // 3. Restaura carrinho na tela
+          iniciarTimerInatividade();     // 4. Ativa timer de inatividade (30s)
       };
     </script>
   </body>

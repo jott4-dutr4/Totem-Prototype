@@ -59,21 +59,118 @@ function carregarSessao() {
 
 /**
  * 🔹 verificarSessaoCliente()
- * Função de segurança. Impede que alguém acesse a tela de produtos direto
- * pelo link sem ter colocado o CPF antes.
+ * Carrega a sessão e atualiza a UI com o nome do cliente se disponível.
+ * NÃO redireciona — catálogo e outras telas são acessíveis sem login.
  */
 function verificarSessaoCliente() {
   carregarSessao();
-  if (!state.cliente) {
-    // Se não tem cliente logado na sessão, expulsa para a tela inicial
-    window.location.href = 'index.html';
-  } else {
-    // Se tem cliente, atualiza a tela para mostrar o nome dele
-    const displayNome = document.getElementById("display-cliente-nome");
-    if (displayNome) {
+  const displayNome = document.getElementById("display-cliente-nome");
+  if (displayNome) {
+    if (state.cliente && state.cliente.nome) {
       displayNome.innerText = `Olá, ${state.cliente.nome.split(" ")[0]}!`;
+    } else {
+      displayNome.innerText = 'Bem-vindo!';
     }
   }
+}
+
+// ==========================================
+// ⏱️ SISTEMA DE INATIVIDADE
+// ==========================================
+
+let _inativoTimer = null;      // Timer principal (30 segundos)
+let _inativoResetTimer = null; // Timer do aviso (15 segundos extras)
+let _inativoAtivo = false;     // Flag para evitar múltiplos overlays
+
+/**
+ * 🔹 iniciarTimerInatividade()
+ * Ativa o sistema de detecção de inatividade para a tela atual.
+ * Deve ser chamado no window.onload de cada tela (exceto index e nota).
+ */
+function iniciarTimerInatividade() {
+  const TEMPO_AVISO = 30000;  // 30 segundos sem interação → exibe aviso
+  const TEMPO_RESET = 15000; // +15 segundos sem resposta → reseta o totem
+
+  // Eventos que contam como "interação do usuário"
+  const eventos = ['click', 'touchstart', 'keydown', 'mousemove'];
+
+  function reiniciarContador() {
+    // Se o aviso de inatividade estiver visível, não reinicia ao tocar nele
+    if (_inativoAtivo) return;
+    clearTimeout(_inativoTimer);
+    clearTimeout(_inativoResetTimer);
+    _inativoTimer = setTimeout(mostrarAvisoInatividade, TEMPO_AVISO);
+  }
+
+  eventos.forEach(ev => document.addEventListener(ev, reiniciarContador, { passive: true }));
+  reiniciarContador(); // Inicia o contador assim que a função é chamada
+}
+
+/**
+ * 🔹 mostrarAvisoInatividade()
+ * Exibe overlay perguntando "Deseja continuar?" com countdown de 15s.
+ */
+function mostrarAvisoInatividade() {
+  _inativoAtivo = true;
+  let segundos = 15;
+
+  // Cria o overlay de aviso dinamicamente
+  const overlay = document.createElement('div');
+  overlay.id = 'overlay-inatividade';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; background: rgba(15,23,42,0.85);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; font-family: 'Inter', sans-serif;
+    animation: fadeInOverlay 0.3s ease;
+  `;
+  overlay.innerHTML = `
+    <style>
+      @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes pulseCircle { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    </style>
+    <div style="background: white; border-radius: 24px; padding: 48px 40px; text-align: center; max-width: 380px; width: 90%; box-shadow: 0 25px 60px rgba(0,0,0,0.4);">
+      <div style="width:80px;height:80px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:pulseCircle 1.5s ease infinite;">
+        <span style="font-size:36px;">⏱️</span>
+      </div>
+      <h2 style="font-size:22px;font-weight:900;color:#1e3a8a;margin-bottom:8px;">Ainda está aí?</h2>
+      <p style="color:#64748b;font-size:14px;margin-bottom:8px;">O sistema será reiniciado em</p>
+      <p id="inativo-countdown" style="font-size:52px;font-weight:900;color:#dc2626;margin-bottom:24px;line-height:1;">${segundos}</p>
+      <p style="color:#94a3b8;font-size:12px;margin-bottom:24px;">Seu carrinho será perdido.</p>
+      <button id="btn-continuar-sessao" style="
+        width:100%;background:#1e3a8a;color:white;font-size:16px;font-weight:800;
+        padding:16px;border-radius:14px;border:none;cursor:pointer;
+        box-shadow:0 4px 15px rgba(30,58,138,0.3);
+      ">Sim, continuar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Botão "Sim, continuar"
+  document.getElementById('btn-continuar-sessao').addEventListener('click', cancelarResetInatividade);
+
+  // Countdown de 15 segundos
+  const countdownEl = document.getElementById('inativo-countdown');
+  _inativoResetTimer = setInterval(() => {
+    segundos--;
+    if (countdownEl) countdownEl.innerText = segundos;
+    if (segundos <= 0) {
+      clearInterval(_inativoResetTimer);
+      reiniciarTotem();
+    }
+  }, 1000);
+}
+
+/**
+ * 🔹 cancelarResetInatividade()
+ * Chamado ao clicar em "Sim, continuar" no overlay de inatividade.
+ */
+function cancelarResetInatividade() {
+  clearTimeout(_inativoTimer);
+  clearInterval(_inativoResetTimer);
+  _inativoAtivo = false;
+  const overlay = document.getElementById('overlay-inatividade');
+  if (overlay) overlay.remove();
+  iniciarTimerInatividade(); // Reinicia o contador do zero
 }
 
 /**
@@ -319,8 +416,11 @@ async function salvarCadastro() {
     state.cliente = data.cliente;
     sessionStorage.removeItem('cpfEmCadastro');
     salvarSessao();
-    window.location.href = 'produtos.html'; // Vai pras compras!
-
+    
+    // Antes de ir pro pagamento, precisamos criar o pedido
+    const sucesso = await irParaPagamentoReal();
+    if (sucesso) return; // Se deu certo, a própria função já redirecionou
+    
   } catch (err) {
     console.error(err);
     alert("Erro de conexão.");
@@ -680,15 +780,14 @@ function removerItemResumo(idx) {
 async function irParaPagamentoReal() {
   state.metodoPagamentoSelecionado = null;
 
-  const btn = document.querySelector('button[onclick="irParaPagamentoReal()"]');
-  const textoOrig = btn ? btn.innerText : "";
-  if (btn) {
-    btn.disabled = true;
-    btn.innerText = "GERANDO PEDIDO...";
+  // Garantir que existe um cliente (mesmo que seja Consumidor Final)
+  if (!state.cliente) {
+    state.cliente = { nome: 'Consumidor Final', cpf: '99999999999', id: 'cf999999-9999-4999-8999-999999999999' };
+    salvarSessao();
   }
 
   const pedido = {
-    cliente_id: state.cliente.id,
+    cliente_id: state.cliente.id || null, // null para Consumidor Final
     itens_comprados: state.carrinho,
     numero_pedido: state.pedidoAtual ? state.pedidoAtual.numero_pedido : undefined
   };
@@ -701,25 +800,107 @@ async function irParaPagamentoReal() {
     if (error || (data && data.error)) {
       console.error(error || data.error);
       alert("Erro ao criar pedido: " + (data?.error || ""));
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = textoOrig;
-      }
-      return;
+      return false;
     }
 
     // Salva o pedido no estado (incluindo o numero_pedido gerado pelo banco)
     state.pedidoAtual = data.pedido;
     salvarSessao();
     window.location.href = "pagamento.html";
+    return true;
 
   } catch (err) {
     console.error(err);
     alert("Erro de conexão ao gerar pedido.");
-    if (btn) {
-      btn.disabled = false;
-      btn.innerText = textoOrig;
+    return false;
+  }
+}
+
+// ==========================================
+// 🪪 TELA DE IDENTIFICAÇÃO (identificacao.html)
+// ==========================================
+
+/**
+ * 🔹 irParaIdentificacao()
+ * Chamado ao clicar em "Gerar Pedido" na tela de resumo.
+ * Salva o carrinho e navega para a tela de identificação.
+ */
+function irParaIdentificacao() {
+  if (state.carrinho.length === 0) {
+    alert('Atenção! Seu carrinho está vazio. Adicione produtos para continuar.');
+    return;
+  }
+  salvarSessao();
+  window.location.href = 'identificacao.html';
+}
+
+/**
+ * 🔹 verificarCPFIdentificacao()
+ * Chamado ao clicar em "Continuar" na tela de identificação.
+ * Busca o CPF no banco:
+ *   - Encontrado → salva cliente e vai para pagamento
+ *   - Não encontrado → salva CPF temporário e vai para cadastro
+ */
+async function verificarCPFIdentificacao() {
+  const input = document.getElementById('input-cpf-identificacao');
+  const btn = document.getElementById('btn-continuar-identificacao');
+  const cpfFormatado = input ? input.value : '';
+  const cpfLimpo = cpfFormatado.replace(/\D/g, '');
+
+  if (!isCPFValido(cpfLimpo)) {
+    return alert('CPF inválido! Verifique o número digitado.');
+  }
+
+  // Feedback visual
+  const textoOrig = btn ? btn.innerText : '';
+  if (btn) { btn.disabled = true; btn.innerText = 'Buscando...'; }
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke('verificar-cpf', {
+      body: { cpf: cpfLimpo }
+    });
+
+    if (error || (data && data.error)) {
+      alert('Erro ao consultar servidor.');
+      return;
     }
+
+    if (data.cliente) {
+      // ✅ CPF encontrado → salva cliente e cria pedido
+      state.cliente = data.cliente;
+      salvarSessao();
+      const sucesso = await irParaPagamentoReal();
+      if (sucesso) return; // Redirecionou
+    } else {
+      // ❌ CPF não encontrado → cadastro
+      sessionStorage.setItem('cpfEmCadastro', cpfFormatado);
+      window.location.href = 'cadastro.html';
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erro de conexão.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerText = textoOrig; }
+  }
+}
+
+/**
+ * 🔹 continuarSemCPF()
+ * Chamado ao clicar em "Continuar sem CPF".
+ * Define o cliente como "Consumidor Final" e gera o pedido.
+ */
+async function continuarSemCPF() {
+  const btn = document.getElementById('btn-sem-cpf');
+  const txtOrig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Gerando Pedido...'; }
+
+  state.cliente = { nome: 'Consumidor Final', cpf: '99999999999', id: 'cf999999-9999-4999-8999-999999999999' };
+  salvarSessao();
+  
+  const sucesso = await irParaPagamentoReal();
+  if (!sucesso && btn) {
+    btn.disabled = false;
+    btn.innerHTML = txtOrig;
   }
 }
 
@@ -854,9 +1035,15 @@ function gerarNotaVisual() {
     document.getElementById("nota-numero-pedido").innerText = `#${numFormatado}`;
   }
 
-  document.getElementById("nota-cliente").innerText = state.cliente.nome.toUpperCase();
-  document.getElementById("nota-cpf").innerText = state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-  document.getElementById("nota-data").innerText = new Date().toLocaleString(); // Data e hora atual
+  // Suporte a "Consumidor Final" (cliente sem CPF)
+  const clienteNome = (state.cliente && state.cliente.nome) ? state.cliente.nome.toUpperCase() : 'CONSUMIDOR FINAL';
+  const clienteCpf = (state.cliente && state.cliente.cpf)
+    ? state.cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+    : '--';
+
+  document.getElementById("nota-cliente").innerText = clienteNome;
+  document.getElementById("nota-cpf").innerText = clienteCpf;
+  document.getElementById("nota-data").innerText = new Date().toLocaleString();
 
   const tbody = document.getElementById("nota-itens");
   tbody.innerHTML = "";
@@ -872,14 +1059,10 @@ function gerarNotaVisual() {
   formas.innerHTML = `<strong>FORMA DE PAGAMENTO:</strong><br>${(state.metodoPagamentoSelecionado || "").toUpperCase()}: R$ ${state.totalCarrinho.toFixed(2)}<br>`;
 
   // 💡 LÓGICA CONDICIONAL DE PIX
-  // Se ele escolheu PIX, temos que mostrar a área onde o QR Code aparece.
   const areaPix = document.getElementById("area-pix-final");
   if (state.metodoPagamentoSelecionado === "PIX") {
     areaPix.classList.remove("hidden");
-    document.getElementById("qrcode").innerHTML = ""; // Limpa qualquer QR code anterior
-    
-    // Instancia um QR Code (Integração com a lib qrcode.js que tá no head do HTML)
-    // Na vida real, esse "text" viria de uma integração de pagamento de verdade do Supabase ou Mercado Pago.
+    document.getElementById("qrcode").innerHTML = "";
     new QRCode(document.getElementById("qrcode"), {
       text: "PIX-PAYLOAD-SIMULADO-PARA-O-JOTTA",
       width: 140,
@@ -888,7 +1071,6 @@ function gerarNotaVisual() {
       colorLight: "#f8fafc",
     });
   } else {
-    // Se foi cartão de crédito/débito, esconde a div do QR Code
     areaPix.classList.add("hidden");
   }
 

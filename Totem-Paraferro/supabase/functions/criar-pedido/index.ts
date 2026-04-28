@@ -24,8 +24,8 @@ serve(async (req) => {
     const { cliente_id, itens_comprados, numero_pedido } = body;
     // metodo_pagamento é opcional agora
 
-    // Validação básica de segurança
-    if (!cliente_id || !Array.isArray(itens_comprados) || itens_comprados.length === 0) {
+    // Validação básica de segurança (permite cliente_id nulo para Consumidor Final)
+    if (cliente_id === undefined || !Array.isArray(itens_comprados) || itens_comprados.length === 0) {
       return new Response(
         JSON.stringify({ error: "Dados do pedido incompletos ou inválidos." }),
         {

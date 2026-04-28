@@ -238,7 +238,7 @@
     <script>
       lucide.createIcons();
       window.onload = function() {
-          verificarSessaoCliente();
+          carregarSessao(); // Carrega estado da sessão (suporta Consumidor Final)
           // Preenche os dados visuais baseados na sessão ANTES dela ser zerada
           gerarNotaVisual();
       };

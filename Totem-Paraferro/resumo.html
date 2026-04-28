@@ -157,7 +157,7 @@
                 Continuar Comprando?
               </button>
 
-              <button onclick="irParaPagamentoReal()" class="
+              <button onclick="irParaIdentificacao()" class="
     flex-1
     bg-blue-900
     text-white
@@ -183,10 +183,10 @@
     <script>
       lucide.createIcons();
       window.onload = function() {
-          verificarSessaoCliente();
-          carregarCarrinhoDaSessao();
-          // Chama a função que desenha a lista toda na tela
-          renderizarResumoCompleto();
+          carregarSessao();           // Carrega carrinho e estado da sessão
+          carregarCarrinhoDaSessao(); // Restaura o carrinho
+          renderizarResumoCompleto(); // Desenha a lista de itens
+          iniciarTimerInatividade();  // Timer de inatividade (30s)
       };
     </script>
   </body>

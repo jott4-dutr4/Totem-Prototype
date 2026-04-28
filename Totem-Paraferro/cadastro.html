@@ -55,7 +55,7 @@
     relative
   ">
             
-            <button onclick="window.location.href='index.html'" class="
+            <button onclick="window.location.href='identificacao.html'" class="
     mb-4
     text-blue-900
     font-bold
@@ -345,18 +345,16 @@
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
-      lucide.createIcons();
-      
       // ==========================================
       // 🧠 LÓGICA DE TELA LOCAL
       // ==========================================
-      // Assim que a tela carrega, tentamos buscar se tem algum CPF esperando 
-      // lá na memória do navegador (no sessionStorage).
+      // Ao carregar, busca o CPF que ficou salvo na sessão (digitado na tela de identificação)
       const cpfSessao = sessionStorage.getItem('cpfEmCadastro');
       if (cpfSessao) {
-          // Se achamos o CPF, guardamos dentro daquele 'input type="hidden"' lá em cima
           document.getElementById('cad-cpf').value = cpfSessao;
       }
+      lucide.createIcons();
+      iniciarTimerInatividade(); // Timer de inatividade (30s)
     </script>
   </body>
 </html>

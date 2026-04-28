@@ -1,13 +1,10 @@
 <!-- 
   📄 ARQUIVO: index.html
-  🧠 PROPÓSITO: Tela de boas-vindas do Totem.
+  🧠 PROPÓSITO: Tela Home (Boas-vindas) do Totem.
   
-  Esta é a "porta de entrada" da loja. O único objetivo dela é coletar o CPF 
-  do cliente e mandar para o app.js verificar se ele já existe no banco.
-  
-  💡 DICA DE MELHORIA FUTURA: Colocar uma validação de máscara "ao vivo" mais bonita, 
-  que pinte a borda de vermelho se o CPF estiver faltando números, antes mesmo 
-  de clicar no botão de continuar.
+  Esta é a "porta de entrada" do totem. Exibe a marca, uma mensagem de
+  boas-vindas e aguarda qualquer toque para iniciar o atendimento.
+  Ao tocar, vai direto para o catálogo de produtos — sem pedir CPF aqui.
 -->
 <!doctype html>
 <html lang="pt-BR">
@@ -16,126 +13,242 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Totem Paraferro - Autoatendimento</title>
-  
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
-  <!-- SUPABASE CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/output.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    /* ── Tela home ocupa 100% e é clicável ── */
+    .home-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100%;
+      background: linear-gradient(160deg, #e8f0fe 0%, #f8fafc 50%, #dbeafe 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Círculos decorativos de fundo ── */
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: floatCircle 6s ease-in-out infinite;
+    }
+
+    .bg-circle-1 {
+      width: 500px;
+      height: 500px;
+      background: #1e3a8a;
+      top: -150px;
+      right: -150px;
+      animation-delay: 0s;
+    }
+
+    .bg-circle-2 {
+      width: 300px;
+      height: 300px;
+      background: #2563eb;
+      bottom: -80px;
+      left: -80px;
+      animation-delay: 2s;
+    }
+
+    .bg-circle-3 {
+      width: 200px;
+      height: 200px;
+      background: #1e3a8a;
+      bottom: 100px;
+      right: 50px;
+      animation-delay: 4s;
+    }
+
+    @keyframes floatCircle {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+
+    /* ── Conteúdo central ── */
+    .home-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      position: relative;
+      z-index: 10;
+      animation: fadeInUp 0.8s ease both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── Logo ── */
+    .home-logo {
+      width: 260px;
+      max-width: 80vw;
+      filter: drop-shadow(0 8px 24px rgba(30, 58, 138, 0.15));
+      animation: fadeInUp 0.8s ease 0.1s both;
+    }
+
+    /* ── Textos ── */
+    .home-welcome {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      color: #1e3a8a;
+      letter-spacing: -1.5px;
+      text-align: center;
+      animation: fadeInUp 0.8s ease 0.2s both;
+    }
+
+    .home-subtitle {
+      font-size: clamp(16px, 2.5vw, 22px);
+      font-weight: 500;
+      color: #475569;
+      text-align: center;
+      animation: fadeInUp 0.8s ease 0.3s both;
+    }
+
+    /* ── Badge "Toque para começar" ── */
+    .home-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #1e3a8a;
+      color: white;
+      font-size: clamp(16px, 2.5vw, 20px);
+      font-weight: 800;
+      padding: 18px 40px;
+      border-radius: 100px;
+      box-shadow: 0 8px 30px rgba(30, 58, 138, 0.35);
+      animation: fadeInUp 0.8s ease 0.4s both, pulse 2.5s ease-in-out 1s infinite;
+      letter-spacing: -0.3px;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 30px rgba(30, 58, 138, 0.35);
+        transform: scale(1);
+      }
+
+      50% {
+        box-shadow: 0 12px 40px rgba(30, 58, 138, 0.5);
+        transform: scale(1.02);
+      }
+    }
+
+    /* ── Ícone piscante no CTA ── */
+    .cta-dot {
+      width: 10px;
+      height: 10px;
+      background: #60a5fa;
+      border-radius: 50%;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+      }
+    }
+
+    /* ── Rodapé com slogan ── */
+    .home-footer {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: fadeInUp 0.8s ease 0.5s both;
+    }
+  </style>
 </head>
 
-<body class="
-    text-blue-900
-    h-screen
-    overflow-hidden
-    select-none
-    bg-slate-50
-  ">
-  <div class="
-    flex
-    h-full
-    w-full
-    bg-slate-50
-    overflow-hidden
-  ">
-    <div class="
-    flex-1
-    relative
-    bg-slate-50
-    overflow-y-auto
-  " id="main-content">
-      <section id="screen-cpf" class="
-    h-full
-    flex
-    flex-col
-    items-center
-    justify-center
-    p-6
-    fade-in
-  ">
-        <div class="card-padrao">
-          <div class="
-    flex
-    justify-center
-    mb-4
-    bg-whithe/10
-    rounded-xl
-    p-4
-  ">
-            <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo da Empresa" />
-          </div>
+<body onclick="iniciarAtendimento()">
 
-          <h2 class="
-    text-5xl
-    font-extrabold
-    mb-2
-    text-blue-900
-    w-full
-    whitespace-nowrap
-    text-center
-    tracking-tighter
-  ">
-            Autoatendimento Paraferro
-          </h2>
-          <p class="
-    text-4x1
-    font-bold
-    mb-6
-    text-blue-900
-    whitespace-nowrap
-  ">
-            Sua compra rápida - Sem Filas - Retira imediata!
-          </p>
+  <div class="home-screen">
+    <!-- Círculos decorativos de fundo -->
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
 
-          <!-- ========================================== -->
-          <!-- BLOCO: ENTRADA DE DADOS DO USUÁRIO         -->
-          <!-- ========================================== -->
-          <div class="text-left">
-            <label class="
-    block
-    text-xs
-    font-bold
-    text-blue-900
-    uppercase
-    mb-2
-    ml-1
-  ">Número do CPF</label>
-            <input type="tel" id="input-cpf-check" placeholder="000.000.000-00" maxlength="14"
-              class="
-    input-padrao
-    mb-6
-  "
-              oninput="mascaraCPF(this)" />
-          </div>
+    <!-- Conteúdo principal -->
+    <div class="home-content">
+      <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" class="home-logo" />
 
-          <!-- ========================================== -->
-          <!-- BLOCO: AÇÃO DO USUÁRIO                     -->
-          <!-- ========================================== -->
-          <!-- ⚡ EVENTO IMPORTANTE: onclick -->
-          <!-- Quando o botão é clicado, inicia o processo de verificação no banco de dados -->
-          <button onclick="verificarCPF()"
-            class="
-    btn-primary
-    hover:bg-blue-800
-    active:scale-95
-    w-full
-    text-xl
-  ">
-            CONTINUAR
-          </button>
-        </div>
-      </section>
+      <h1 class="home-welcome">Bem-vindo!</h1>
+
+      <p class="home-subtitle">Sua compra rápida · Sem Filas · Retirada Imediata</p>
+
+      <!-- Botão/badge de chamada para ação -->
+      <div class="home-cta">
+        <span class="cta-dot"></span>
+        Toque na tela para começar
+      </div>
     </div>
+
+    <!-- Rodapé -->
+    <p class="home-footer">Totem de Autoatendimento</p>
   </div>
-  
-  <!-- ⚙️ SCRIPTS DA APLICAÇÃO -->
-  <!-- A ordem importa: primeiro o banco (supabase-config), depois a inteligência (app.js) -->
-  <script src="js/supabase-config.js"></script>
-  <script src="js/app.js"></script>
+
   <script>
-    // Inicializa todos os ícones <i data-lucide="..."> da tela na hora que carrega.
-    lucide.createIcons();
+    /**
+     * iniciarAtendimento()
+     * Chamada ao tocar/clicar em qualquer lugar da tela.
+     * Limpa qualquer sessão anterior e vai direto para o catálogo.
+     */
+    function iniciarAtendimento() {
+      // Limpa sessão anterior (garante carrinho zerado para nova venda)
+      sessionStorage.clear();
+      window.location.href = 'produtos.html';
+    }
   </script>
 </body>
 

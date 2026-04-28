@@ -435,10 +435,10 @@
     <script>
       lucide.createIcons();
       window.onload = function() {
-          verificarSessaoCliente();
-          carregarCarrinhoDaSessao();
-          // Pinta os valores de Total corretos e a lista de itens
-          atualizarResumoPedidoUI();
+          carregarSessao();          // Carrega carrinho e estado da sessão
+          carregarCarrinhoDaSessao(); // Restaura o carrinho
+          atualizarResumoPedidoUI(); // Pinta os valores de Total e a lista de itens
+          iniciarTimerInatividade(); // Timer de inatividade (30s)
       };
     </script>
   </body>
