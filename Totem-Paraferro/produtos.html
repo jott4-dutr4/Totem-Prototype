@@ -8,46 +8,134 @@
 -->
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Totem Paraferro - Autoatendimento (Produtos)</title>
-    
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
-    <!-- SUPABASE CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/output.css" />
-  </head>
-  <body class="
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Totem Paraferro - Autoatendimento (Produtos)</title>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <!-- SUPABASE CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/output.css" />
+
+  <style>
+    /* ── BARRA CARRINHO ── */
+    .cart-bar {
+      background: #1e3a8a;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+      z-index: 30;
+    }
+
+    .cart-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cart-icon-wrap {
+      position: relative;
+    }
+
+    #cart-badge-rodape {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #1e3a8a;
+    }
+
+    .cart-label {
+      color: #93c5fd;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 0;
+      margin-bottom: 2px;
+    }
+
+    .cart-total {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .cart-btn {
+      background: #fff;
+      color: #1e3a8a;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 14px 24px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .cart-btn:hover {
+      background: #eff6ff;
+      transform: scale(1.02);
+    }
+
+    .cart-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+
+<body class="
     text-blue-900
     h-screen
     overflow-hidden
     select-none
     bg-slate-50
   ">
-    <div class="
+  <div class="
     flex
     h-full
     w-full
     bg-slate-50
     overflow-hidden
   ">
-      <div class="
+    <div class="
     flex-1
     relative
     bg-slate-50
-    overflow-y-auto
+    overflow-hidden
   " id="main-content">
-        <section id="screen-produtos" class="
+      <section id="screen-produtos" class="
     h-full
     flex
     flex-col
     fade-in
     bg-slate-50
   ">
-          <div class="
+        <div class="
     p-4
     md:p-6
     bg-white
@@ -61,55 +149,20 @@
     z-30
     shadow-sm
   ">
-            <div class="
-    flex
-    items-center
-    gap-3
-  ">
-              <div class="
-    w-10
-    h-10
-    md:w-12
-    h-12
-    bg-blue-100
-    rounded-full
-    flex
-    items-center
-    justify-center
-    text-blue-900
-    shrink-0
-  ">
-                <i data-lucide="user"></i>
-              </div>
-              <div>
-                <h2 class="
-    text-lg
-    md:text-xl
-    font-bold
-    text-blue-900
-    leading-tight
-  " id="display-cliente-nome">
-                  ...
-                </h2>
-                <button onclick="reiniciarTotem()" class="
-    text-[10px]
-    md:text-xs
-    text-red-500
-    uppercase
-    font-bold
-    tracking-widest
-    hover:underline
-    mt-1
-  ">
-                  Sair / Nova Venda
-                </button>
-              </div>
-            </div>
+          <!-- Esquerda: Sair -->
+          <div class="flex items-center">
+            <button onclick="reiniciarTotem()" class="
+                flex items-center gap-2 px-5 py-2
+                bg-red-50 text-red-500 border-2 border-red-200
+                rounded-xl font-bold tracking-widest uppercase hover:bg-red-100
+                transition-colors
+              ">
+              <i data-lucide="door-open" class="w-5 h-5"></i>
+              SAIR
+            </button>
+          </div>
 
-            <img
-              src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
-              alt="Logo Paraferro"
-              class="
+          <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" class="
     w-32
     md:w-44
     absolute
@@ -118,74 +171,20 @@
     -translate-y-1/2
     -translate-x-1/2
     z-50
-  "
-            />
+  " />
 
-            <div class="
-    flex
-    items-center
-    gap-3
-    md:gap-4
-    justify-end
-  ">
-              <button
-                onclick="irParaPagamento()"
-                class="
-    relative
-    p-3
-    md:p-4
-    bg-blue-900
-    text-white
-    rounded-full
-    shadow-lg
-    hover:bg-blue-800
-    active:scale-95
-    transition-all
-    z-50
-  "
-                id="btn-carrinho-topo"
-              >
-                <i data-lucide="shopping-cart" class="
-    w-5
-    h-5
-    md:w-7
-    md:h-7
-  "></i>
-                <span
-                  id="cart-badge"
-                  class="
-    absolute
-    -top-1
-    -right-1
-    bg-red-600
-    text-white
-    text-[10px]
-    font-bold
-    min-w-[20px]
-    h-5
-    md:min-w-[24px]
-    md:h-6
-    flex
-    items-center
-    justify-center
-    rounded-full
-    border-2
-    border-white
-    hidden
-  "
-                >0</span>
-              </button>
-            </div>
-          </div>
+          <!-- Direita: Espaço vazio para manter a logo no centro -->
+          <div class="w-[100px]"></div>
+        </div>
 
-          <div class="
+        <div class="
     flex-1
     flex
     flex-col
     overflow-hidden
     relative
   ">
-            <div class="
+          <div class="
     flex-1
     flex
     flex-col
@@ -194,12 +193,12 @@
     overflow-y-auto
     bg-slate-50
   ">
-              <div class="
+            <div class="
     relative
     mb-6
     group
   ">
-                <i data-lucide="search" class="
+              <i data-lucide="search" class="
     absolute
     left-5
     top-1/2
@@ -208,11 +207,7 @@
     group-focus-within:text-blue-900
     transition-colors
   "></i>
-                <input
-                  id="search-catalogo"
-                  type="text"
-                  placeholder="O que você está procurando hoje?"
-                  class="
+              <input id="search-catalogo" type="text" placeholder="O que você está procurando hoje?" class="
     w-full
     pl-14
     pr-6
@@ -229,13 +224,11 @@
     outline-none
     transition-all
     placeholder-slate-400
-  "
-                  oninput="filtrarCatalogo(this.value)"
-                />
-              </div>
+  " oninput="filtrarCatalogo(this.value)" />
+            </div>
 
-              <!-- Loading spinner -->
-              <div id="loading-produtos" class="
+            <!-- Loading spinner -->
+            <div id="loading-produtos" class="
     flex
     flex-col
     items-center
@@ -243,16 +236,16 @@
     py-20
     text-blue-900
   ">
-                  <i data-lucide="loader-2" class="
+              <i data-lucide="loader-2" class="
     w-8
     h-8
     animate-spin
     mb-4
   "></i>
-                  <p class="font-bold">Carregando catálogo...</p>
-              </div>
+              <p class="font-bold">Carregando catálogo...</p>
+            </div>
 
-              <div id="grid-catalogo" class="
+            <div id="grid-catalogo" class="
     grid
     grid-cols-2
     gap-4
@@ -260,55 +253,46 @@
     pb-20
     hidden
   "></div>
+          </div>
+        </div>
+
+        <!-- ── BARRA DO CARRINHO ── -->
+        <div class="cart-bar">
+          <div class="cart-left">
+            <div class="cart-icon-wrap" id="icone-carrinho-rodape">
+              <i data-lucide="shopping-cart" style="width:28px;height:28px;color:#fff;"></i>
+              <span id="cart-badge-rodape" class="hidden">0</span>
+            </div>
+            <div>
+              <p class="cart-label">Total do pedido</p>
+              <p class="cart-total">R$ <span id="cart-total-rodape">0.00</span></p>
             </div>
           </div>
 
-          <div class="
-    bg-white
-    border-t-2
-    border-slate-100
-    px-8
-    py-6
-    flex
-    justify-between
-    items-center
-    z-30
-    shrink-0
-    shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.08)]
-  ">
-            <span class="
-    text-2xl
-    md:text-3xl
-    font-black
-    text-blue-900
-    tracking-tight
-  ">Total</span>
-            <span class="
-    text-2xl
-    md:text-3xl
-    font-black
-    text-blue-900
-    tracking-tight
-  ">R$ <span id="cart-total-rodape">0.00</span></span>
-          </div>
-        </section>
-      </div>
+          <button class="cart-btn" onclick="irParaPagamento()">
+            <i data-lucide="shopping-bag" style="width:20px;height:20px;"></i>
+            VER CARRINHO
+          </button>
+        </div>
+      </section>
     </div>
-    
-    <script src="js/supabase-config.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-      lucide.createIcons();
-      
-      // ==========================================
-      // 🧠 INICIALIZAÇÃO DA TELA (window.onload)
-      // ==========================================
-      window.onload = function() {
-          carregarSessao();              // 1. Carrega estado da sessão (carrinho, cliente se houver)
-          carregarProdutosDoBanco();     // 2. Vai no Supabase baixar os produtos
-          carregarCarrinhoDaSessao();    // 3. Restaura carrinho na tela
-          iniciarTimerInatividade();     // 4. Ativa timer de inatividade (30s)
-      };
-    </script>
-  </body>
+  </div>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // ==========================================
+    // 🧠 INICIALIZAÇÃO DA TELA (window.onload)
+    // ==========================================
+    window.onload = function () {
+      carregarSessao();              // 1. Carrega estado da sessão (carrinho, cliente se houver)
+      carregarProdutosDoBanco();     // 2. Vai no Supabase baixar os produtos
+      carregarCarrinhoDaSessao();    // 3. Restaura carrinho na tela
+      iniciarTimerInatividade();     // 4. Ativa timer de inatividade (30s)
+    };
+  </script>
+</body>
+
 </html>

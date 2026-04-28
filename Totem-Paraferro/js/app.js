@@ -645,7 +645,7 @@ function atualizarCarrinhoUI() {
   const rodape = document.getElementById("cart-total-rodape");
   if (rodape) rodape.innerText = state.totalCarrinho.toFixed(2); // .toFixed(2) garante 2 casas decimais
 
-  const badge = document.getElementById("cart-badge");
+  const badge = document.getElementById("cart-badge-rodape");
   if (badge) {
     if (totalQuantidadeItens > 0) {
       badge.innerText = totalQuantidadeItens;
@@ -660,7 +660,7 @@ function atualizarCarrinhoUI() {
 function animarParaCarrinho(id, event) {
   if (!event) return;
   const produto = catalogoProdutos.find((p) => p.id === id);
-  const cartBtn = document.getElementById("btn-carrinho-topo");
+  const cartBtn = document.getElementById("icone-carrinho-rodape");
 
   // Cria um elemento <img> fantasma só para voar pela tela
   const flyingImg = document.createElement("img");
