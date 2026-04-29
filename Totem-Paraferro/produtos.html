@@ -80,6 +80,7 @@
     }
 
     .cart-btn {
+      position: relative;
       background: #fff;
       color: #1e3a8a;
       font-weight: 900;
@@ -259,10 +260,6 @@
         <!-- ── BARRA DO CARRINHO ── -->
         <div class="cart-bar">
           <div class="cart-left">
-            <div class="cart-icon-wrap" id="icone-carrinho-rodape">
-              <i data-lucide="shopping-cart" style="width:28px;height:28px;color:#fff;"></i>
-              <span id="cart-badge-rodape" class="hidden">0</span>
-            </div>
             <div>
               <p class="cart-label">Total do pedido</p>
               <p class="cart-total">R$ <span id="cart-total-rodape">0.00</span></p>
@@ -270,8 +267,11 @@
           </div>
 
           <button class="cart-btn" onclick="irParaPagamento()">
-            <i data-lucide="shopping-bag" style="width:20px;height:20px;"></i>
+            <div class="cart-icon-wrap" id="icone-carrinho-rodape">
+              <i data-lucide="shopping-cart" style="width:24px;height:24px;color:#1e3a8a;"></i>
+            </div>
             VER CARRINHO
+            <span id="cart-badge-rodape" class="hidden">0</span>
           </button>
         </div>
       </section>
