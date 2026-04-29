@@ -789,7 +789,13 @@ function renderizarResumoCompleto() {
           <div class="flex items-center gap-3 mt-3">
             <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
               <button onclick="alterarQtdResumo(${item.id}, -1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="minus" class="w-4 h-4"></i></button>
-              <span class="px-3 py-1 font-bold text-sm bg-white border-x border-slate-200">${item.qtd}</span>
+              <input 
+                type="tel" 
+                value="${item.qtd}" 
+                onchange="alterarQuantidadeManualResumo(${item.id}, this.value)"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                class="w-12 py-1 bg-white font-black text-blue-900 text-sm text-center border-x border-slate-200 focus:outline-none focus:bg-blue-50"
+              />
               <button onclick="alterarQtdResumo(${item.id}, 1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="plus" class="w-4 h-4"></i></button>
             </div>
 
@@ -812,17 +818,47 @@ function alterarQtdResumo(id, delta) {
   if (index !== -1) {
     const item = state.carrinho[index];
     const novaQtd = item.qtd + delta;
+    const estoqueAtual = item.estoque_atual !== undefined ? item.estoque_atual : 999;
+
     if (novaQtd === 0) {
       if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
         state.carrinho.splice(index, 1);
       }
     } else {
+      if (novaQtd > estoqueAtual) return alert("Quantidade máxima em estoque atingida.");
       item.qtd = novaQtd;
       item.total = item.qtd * item.preco;
     }
   }
   salvarSessao();
   renderizarResumoCompleto(); // Atualiza a tela de resumo inteira na hora
+}
+
+// Alteração manual digitada na tela de resumo
+function alterarQuantidadeManualResumo(id, valor) {
+  const novaQtd = parseInt(valor, 10);
+  const index = state.carrinho.findIndex((x) => x.id === id);
+  
+  if (index !== -1) {
+    const item = state.carrinho[index];
+    const estoqueAtual = item.estoque_atual !== undefined ? item.estoque_atual : 999;
+
+    if (isNaN(novaQtd) || novaQtd <= 0) {
+      if (confirm(`Deseja realmente excluir o material "${item.nome}"?`)) {
+        state.carrinho.splice(index, 1);
+      }
+    } else {
+      if (novaQtd > estoqueAtual) {
+        alert("Quantidade máxima em estoque atingida.");
+        item.qtd = estoqueAtual;
+      } else {
+        item.qtd = novaQtd;
+      }
+      item.total = item.qtd * item.preco;
+    }
+    salvarSessao();
+    renderizarResumoCompleto();
+  }
 }
 
 // Quando o cara clica na lixeirinha
