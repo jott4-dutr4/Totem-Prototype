@@ -117,7 +117,7 @@
 
     /* ── Logo ── */
     .home-logo {
-      width: 260px;
+      width: 460px;
       max-width: 80vw;
       filter: drop-shadow(0 8px 24px rgba(30, 58, 138, 0.15));
       animation: fadeInUp 0.8s ease 0.1s both;
@@ -125,7 +125,7 @@
 
     /* ── Textos ── */
     .home-welcome {
-      font-size: clamp(36px, 6vw, 56px);
+      font-size: clamp(64px, 8vw, 82px);
       font-weight: 900;
       color: #1e3a8a;
       letter-spacing: -1.5px;
@@ -171,42 +171,45 @@
       }
     }
 
-    /* ── Ícone piscante no CTA ── */
-    .cta-dot {
-      width: 10px;
-      height: 10px;
-      background: #60a5fa;
-      border-radius: 50%;
-      animation: blink 1.2s ease-in-out infinite;
+    /* ── Ícone pulsante no CTA ── */
+    .cta-icon {
+      color: #60a5fa;
+      animation: clickPulse 1.5s ease-in-out infinite;
     }
 
-    @keyframes blink {
+    @keyframes clickPulse {
 
       0%,
       100% {
-        opacity: 1;
-        transform: scale(1);
+        transform: scale(1) translateY(0);
       }
 
       50% {
-        opacity: 0.4;
-        transform: scale(0.7);
+        transform: scale(0.9) translateY(3px);
       }
     }
 
-    /* ── Rodapé com slogan ── */
-    .home-footer {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 13px;
-      font-weight: 600;
-      color: #94a3b8;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      animation: fadeInUp 0.8s ease 0.5s both;
+    /* ── Tracinhos do clique piscando ── */
+    .click-rays {
+      animation: rayFlash 1.5s ease-in-out infinite;
+      transform-origin: 8px 4px;
+    }
+
+    @keyframes rayFlash {
+
+      0%,
+      35%,
+      70%,
+      100% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+
+      45%,
+      55% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
   </style>
 </head>
@@ -223,33 +226,42 @@
     <div class="home-content">
       <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" class="home-logo" />
 
-      <h1 class="home-welcome">Bem-vindo!</h1>
+      <h1 class="home-welcome">Autoatendimento<br>Para Sua Obra!</h1>
 
-      <p class="home-subtitle">Sua compra rápida · Sem Filas · Retirada Imediata</p>
+      <p class="home-subtitle">Sua compra rápida, sem filas!<br>Sua obra começa aqui.</p>
 
       <!-- Botão/badge de chamada para ação -->
       <div class="home-cta">
-        <span class="cta-dot"></span>
+        <svg class="cta-icon" width="32" height="32" viewBox="-4 -4 36 36" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Tracinhos do clique (Rays) -->
+          <g class="click-rays">
+            <path d="M8 -2v4M1 5h4M2 0l3 3M14 0l-3 3M2 10l3-3" />
+          </g>
+
+          <!-- Mão inclinada -->
+          <g transform="rotate(-25 10 10) translate(2, 2)">
+            <path d="M8 12V5a2 2 0 0 1 4 0v6" />
+            <path d="M12 11V9a2 2 0 0 1 4 0v3" />
+            <path d="M16 12v-1a2 2 0 0 1 4 0v3" />
+            <path d="M20 13v-1a2 2 0 0 1 4 0v5a7 7 0 0 1-7 7H9.5a7 7 0 0 1-6-3.5L1.5 16a2 2 0 0 1 3.5-2l3 3.5" />
+          </g>
+        </svg>
         Toque na tela para começar
       </div>
-    </div>
 
-    <!-- Rodapé -->
-    <p class="home-footer">Totem de Autoatendimento</p>
-  </div>
-
-  <script>
-    /**
-     * iniciarAtendimento()
-     * Chamada ao tocar/clicar em qualquer lugar da tela.
-     * Limpa qualquer sessão anterior e vai direto para o catálogo.
-     */
-    function iniciarAtendimento() {
-      // Limpa sessão anterior (garante carrinho zerado para nova venda)
-      sessionStorage.clear();
-      window.location.href = 'produtos.html';
-    }
-  </script>
+      <script>
+        /**
+         * iniciarAtendimento()
+         * Chamada ao tocar/clicar em qualquer lugar da tela.
+         * Limpa qualquer sessão anterior e vai direto para o catálogo.
+         */
+        function iniciarAtendimento() {
+          // Limpa sessão anterior (garante carrinho zerado para nova venda)
+          sessionStorage.clear();
+          window.location.href = 'produtos.html';
+        }
+      </script>
 </body>
 
 </html>
