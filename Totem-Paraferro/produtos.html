@@ -1,10 +1,6 @@
 <!-- 
   📄 ARQUIVO: produtos.html
-  🧠 PROPÓSITO: Tela principal da loja (Catálogo).
-  
-  Aqui o cliente vê quem ele é, busca produtos, adiciona no carrinho 
-  e vê o valor total subindo. Esta tela é fortemente dependente 
-  do Javascript (app.js) para desenhar as "caixinhas" dos produtos.
+  🧠 PROPÓSITO: Tela principal da loja (Catálogo) com Sidebar de Categorias.
 -->
 <!doctype html>
 <html lang="pt-BR">
@@ -22,22 +18,95 @@
   <link rel="stylesheet" href="css/output.css" />
 
   <style>
+    /* ── BARRA LATERAL (SIDEBAR) ── */
+    .sidebar-catalogo {
+      width: 170px;
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 40;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.03);
+    }
+
+    .sidebar-logo-container {
+      padding: 32px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: center;
+    }
+
+    .sidebar-nav-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 24px 24px 12px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cat-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #475569;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-btn:hover {
+      background: #f1f5f9;
+      color: #1e3a8a;
+    }
+
+    .cat-btn.ativo {
+      background: #1e3a8a;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+    }
+
+    .sidebar-footer {
+      padding: 24px;
+      border-top: 1px solid #f1f5f9;
+      background: #ffffff;
+    }
+
     /* ── BARRA CARRINHO ── */
     .cart-bar {
       background: #1e3a8a;
-      padding: 14px 20px;
+      padding: 24px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
       z-index: 30;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
     }
 
     .cart-left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
     .cart-icon-wrap {
@@ -63,7 +132,7 @@
 
     .cart-label {
       color: #93c5fd;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
@@ -73,7 +142,7 @@
 
     .cart-total {
       color: #fff;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       line-height: 1.2;
       margin: 0;
@@ -84,15 +153,15 @@
       background: #fff;
       color: #1e3a8a;
       font-weight: 900;
-      font-size: 15px;
-      padding: 14px 24px;
-      border-radius: 14px;
+      font-size: 16px;
+      padding: 16px 28px;
+      border-radius: 16px;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       transition: all 0.2s;
       letter-spacing: 0.02em;
       white-space: nowrap;
@@ -106,177 +175,108 @@
     .cart-btn:active {
       transform: scale(0.96);
     }
+
+    /* Custom Scrollbar for sidebar */
+    .sidebar-nav::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 20px;
+    }
   </style>
 </head>
 
-<body class="
-    text-blue-900
-    h-screen
-    overflow-hidden
-    select-none
-    bg-slate-50
-  ">
-  <div class="
-    flex
-    h-full
-    w-full
-    bg-slate-50
-    overflow-hidden
-  ">
-    <div class="
-    flex-1
-    relative
-    bg-slate-50
-    overflow-hidden
-  " id="main-content">
-      <section id="screen-produtos" class="
-    h-full
-    flex
-    flex-col
-    fade-in
-    bg-slate-50
-  ">
-        <div class="
-    p-4
-    md:p-6
-    bg-white
-    border-b
-    border-slate-200
-    flex
-    justify-between
-    items-center
-    sticky
-    top-0
-    z-30
-    shadow-sm
-  ">
-          <!-- Esquerda: Sair -->
-          <div class="flex items-center">
-            <button onclick="reiniciarTotem()" class="
-                flex items-center gap-2 px-5 py-2
-                bg-red-50 text-red-500 border-2 border-red-200
-                rounded-xl font-bold tracking-widest uppercase hover:bg-red-100
-                transition-colors
-              ">
-              <i data-lucide="door-open" class="w-5 h-5"></i>
-              SAIR
-            </button>
-          </div>
+<body class="text-blue-900 h-screen w-screen overflow-hidden select-none bg-slate-50 flex font-sans">
 
-          <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" class="
-    w-32
-    md:w-44
-    absolute
-    top-1/2
-    left-1/2
-    -translate-y-1/2
-    -translate-x-1/2
-    z-50
-  " />
-
-          <!-- Direita: Espaço vazio para manter a logo no centro -->
-          <div class="w-[100px]"></div>
-        </div>
-
-        <div class="
-    flex-1
-    flex
-    flex-col
-    overflow-hidden
-    relative
-  ">
-          <div class="
-    flex-1
-    flex
-    flex-col
-    p-4
-    md:p-6
-    overflow-y-auto
-    bg-slate-50
-  ">
-            <div class="
-    relative
-    mb-6
-    group
-  ">
-              <i data-lucide="search" class="
-    absolute
-    left-5
-    top-1/2
-    -translate-y-1/2
-    text-slate-400
-    group-focus-within:text-blue-900
-    transition-colors
-  "></i>
-              <input id="search-catalogo" type="text" placeholder="O que você está procurando hoje?" class="
-    w-full
-    pl-14
-    pr-6
-    py-4
-    border-2
-    border-slate-300
-    bg-white
-    text-blue-900
-    shadow-sm
-    rounded-2xl
-    text-base
-    md:text-lg
-    focus:border-blue-900
-    outline-none
-    transition-all
-    placeholder-slate-400
-  " oninput="filtrarCatalogo(this.value)" />
-            </div>
-
-            <!-- Loading spinner -->
-            <div id="loading-produtos" class="
-    flex
-    flex-col
-    items-center
-    justify-center
-    py-20
-    text-blue-900
-  ">
-              <i data-lucide="loader-2" class="
-    w-8
-    h-8
-    animate-spin
-    mb-4
-  "></i>
-              <p class="font-bold">Carregando catálogo...</p>
-            </div>
-
-            <div id="grid-catalogo" class="
-    grid
-    grid-cols-2
-    gap-4
-    md:gap-6
-    pb-20
-    hidden
-  "></div>
-          </div>
-        </div>
-
-        <!-- ── BARRA DO CARRINHO ── -->
-        <div class="cart-bar">
-          <div class="cart-left">
-            <div>
-              <p class="cart-label">Total do pedido</p>
-              <p class="cart-total">R$ <span id="cart-total-rodape">0.00</span></p>
-            </div>
-          </div>
-
-          <button class="cart-btn" onclick="irParaPagamento()">
-            <div class="cart-icon-wrap" id="icone-carrinho-rodape">
-              <i data-lucide="shopping-cart" style="width:24px;height:24px;color:#1e3a8a;"></i>
-            </div>
-            VER CARRINHO
-            <span id="cart-badge-rodape" class="hidden">0</span>
-          </button>
-        </div>
-      </section>
+  <!-- ============================================
+       SIDEBAR ESQUERDA (Navegação + Logo + Usuário)
+       ============================================ -->
+  <aside class="sidebar-catalogo">
+    <!-- Logo -->
+    <div class="sidebar-logo-container">
+      <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" class="w-40 object-contain" />
     </div>
-  </div>
+
+    <!-- Título da seção de navegação -->
+    <p class="sidebar-nav-title">Categorias</p>
+
+    <!-- Botões de categoria (gerado pelo JS) -->
+    <nav class="sidebar-nav" id="nav-categorias">
+      <button class="cat-btn ativo" id="cat-btn-todos" onclick="filtrarPorCategoria('todos')">
+        Todos os Materiais
+      </button>
+      <!-- Categorias dinâmicas são inseridas aqui pelo JS -->
+    </nav>
+
+    <!-- Rodapé: Sair -->
+    <div class="sidebar-footer">
+      <!-- Elemento oculto mantido para compatibilidade com o JS (verificarSessaoCliente) -->
+      <span id="display-cliente-nome" class="hidden"></span>
+      <button onclick="reiniciarTotem()"
+        class="flex items-center gap-2 text-red-500 font-black text-sm tracking-widest uppercase hover:text-red-600 transition-colors bg-transparent border-none cursor-pointer w-full justify-center py-2">
+        <i data-lucide="door-open" class="w-5 h-5"></i>
+        SAIR
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============================================
+       ÁREA CENTRAL (Busca + Produtos + Carrinho)
+       ============================================ -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+
+    <!-- Barra de Pesquisa e Título -->
+    <header class="pt-8 px-8 pb-4 flex-shrink-0 bg-slate-50 z-20">
+      <h2 id="titulo-categoria" class="text-3xl font-black text-blue-900 mb-6 tracking-tight">
+        Todos os Materiais
+      </h2>
+
+      <div class="relative group max-w-3xl">
+        <i data-lucide="search"
+          class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-900 transition-colors w-5 h-5"></i>
+        <input id="search-catalogo" type="text" placeholder="O que você está procurando hoje?"
+          class="w-full pl-14 pr-6 py-4 border-2 border-slate-200 bg-white text-blue-900 shadow-sm rounded-2xl text-lg focus:border-blue-900 outline-none transition-all placeholder-slate-400 font-medium"
+          oninput="filtrarCatalogo(this.value)" />
+      </div>
+    </header>
+
+    <!-- Grid de Produtos (scrollável) -->
+    <div class="flex-1 overflow-y-auto px-8 pb-8 relative" id="main-content">
+      <!-- Loading spinner -->
+      <div id="loading-produtos" class="flex flex-col items-center justify-center py-20 text-blue-900">
+        <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-4"></i>
+        <p class="font-bold">Carregando catálogo...</p>
+      </div>
+
+      <div id="grid-catalogo" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 hidden"></div>
+    </div>
+
+    <!-- ============================================
+         BARRA INFERIOR DO CARRINHO
+         ============================================ -->
+    <div class="cart-bar z-30">
+      <div class="cart-left">
+        <div>
+          <p class="cart-label">Total do pedido</p>
+          <p class="cart-total">R$ <span id="cart-total-rodape">0.00</span></p>
+        </div>
+      </div>
+
+      <button class="cart-btn" onclick="irParaPagamento()">
+        <div class="cart-icon-wrap" id="icone-carrinho-rodape">
+          <i data-lucide="shopping-cart" style="width:24px;height:24px;color:#1e3a8a;"></i>
+        </div>
+        VER CARRINHO
+        <span id="cart-badge-rodape" class="hidden">0</span>
+      </button>
+    </div>
+  </main>
 
   <script src="js/supabase-config.js"></script>
   <script src="js/app.js"></script>

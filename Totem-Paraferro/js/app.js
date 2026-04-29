@@ -22,6 +22,7 @@ let state = {
 
 // Guarda a lista completa de produtos que vem do banco de dados (Supabase)
 let catalogoProdutos = [];
+let categoriaAtual = 'todos'; // Variável para controlar a aba de categorias
 
 // Armazena dados extras de endereço que o ViaCEP retorna, mas que não 
 // precisam aparecer na tela para o usuário (bairro, cidade, estado)
@@ -457,6 +458,9 @@ async function carregarProdutosDoBanco() {
     // Guarda localmente na memória (cache) pra não ter que bater no banco a cada pesquisa
     catalogoProdutos = data;
 
+    // Renderiza a barra lateral com as categorias dinâmicas
+    renderizarCategorias();
+
     // Remove o símbolo de "carregando..." girando da tela
     const loading = document.getElementById('loading-produtos');
     if (loading) loading.classList.add('hidden');
@@ -471,6 +475,61 @@ async function carregarProdutosDoBanco() {
   } catch (err) {
     console.error(err);
   }
+}
+
+/**
+ * 🔹 renderizarCategorias()
+ * Lê o catálogo e extrai as categorias únicas.
+ */
+function renderizarCategorias() {
+  const nav = document.getElementById("nav-categorias");
+  if (!nav) return;
+
+  const categoriasUnicas = new Set();
+  catalogoProdutos.forEach(p => {
+    if (p.categoria) categoriasUnicas.add(p.categoria);
+  });
+
+  nav.innerHTML = `
+    <button class="cat-btn ativo" id="cat-btn-todos" onclick="filtrarPorCategoria('todos')">
+      Todos os Materiais
+    </button>
+  `;
+
+  const categoriasOrdenadas = Array.from(categoriasUnicas).sort();
+  categoriasOrdenadas.forEach(cat => {
+    const catId = "cat-btn-" + cat.replace(/\s+/g, '-').toLowerCase();
+    nav.innerHTML += `
+      <button class="cat-btn" id="${catId}" onclick="filtrarPorCategoria('${cat}')">
+        ${cat}
+      </button>
+    `;
+  });
+}
+
+/**
+ * 🔹 filtrarPorCategoria(categoria)
+ * Chamado ao clicar num botão da barra lateral.
+ */
+function filtrarPorCategoria(categoria) {
+  categoriaAtual = categoria;
+  
+  const nav = document.getElementById("nav-categorias");
+  if (nav) {
+    const botoes = nav.querySelectorAll('.cat-btn');
+    botoes.forEach(btn => btn.classList.remove('ativo'));
+    
+    let btnAtivoId = categoria === 'todos' ? 'cat-btn-todos' : "cat-btn-" + categoria.replace(/\s+/g, '-').toLowerCase();
+    const btnAtivo = document.getElementById(btnAtivoId);
+    if (btnAtivo) btnAtivo.classList.add('ativo');
+  }
+
+  const titulo = document.getElementById("titulo-categoria");
+  if (titulo) {
+    titulo.innerText = categoria === 'todos' ? 'Todos os Materiais' : categoria;
+  }
+
+  renderizarCatalogo(document.getElementById("search-catalogo")?.value || "");
 }
 
 /**
@@ -554,11 +613,14 @@ function renderizarCatalogo(filtro = "") {
   if (!grid) return;
   grid.innerHTML = ""; // Limpa tudo antes de desenhar de novo
 
-  // Aplica o filtro de busca no texto e no nome
+  // Aplica o filtro de busca no texto e no nome, e respeita a categoria selecionada
   const filtrados = catalogoProdutos.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-      (p.descricao && p.descricao.toLowerCase().includes(filtro.toLowerCase())),
+    (p) => {
+      const textoBate = p.nome.toLowerCase().includes(filtro.toLowerCase()) || 
+                        (p.descricao && p.descricao.toLowerCase().includes(filtro.toLowerCase()));
+      const categoriaBate = categoriaAtual === 'todos' || p.categoria === categoriaAtual;
+      return textoBate && categoriaBate;
+    }
   );
 
   if (filtrados.length === 0) {
