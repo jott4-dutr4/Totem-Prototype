@@ -657,26 +657,40 @@ function renderizarCatalogo(filtro = "") {
       `;
     } else {
       // Se não, desenhamos o botão padrão de "Adicionar" com ícone de carrinho
+      const isSemEstoque = p.estoque_atual !== undefined && p.estoque_atual <= 0;
+      
+      // Usando inline styles para garantir que a cor funcione sem precisar recompilar o Tailwind
+      const btnStyle = isSemEstoque ? "background-color: #e2e8f0; color: #64748b;" : "";
+      const btnClasses = isSemEstoque 
+        ? "" 
+        : "bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 group";
+      
+      const iconPlusColor = isSemEstoque ? "" : "text-blue-900";
+      const iconPlusStyle = isSemEstoque ? "color: #64748b;" : "";
+
       controlesHTML = `
-        <button onclick="alterarQuantidade(${p.id}, 1, event)" class="relative bg-blue-900 text-white p-3 rounded-xl hover:bg-blue-800 transition-all hover:scale-105 shadow-md group">
+        <button onclick="alterarQuantidade(${p.id}, 1, event)" style="${btnStyle}" class="relative ${btnClasses} p-3 rounded-xl transition-all shadow-md">
           <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-          <span class="absolute -bottom-1 -right-1 bg-white text-blue-900 rounded-full flex items-center justify-center w-4 h-4 shadow-sm group-hover:bg-blue-100 transition-colors">
+          <span class="absolute -bottom-1 -right-1 bg-white ${iconPlusColor} rounded-full flex items-center justify-center w-4 h-4 shadow-sm transition-colors ${!isSemEstoque ? 'group-hover:bg-blue-100' : ''}" style="${iconPlusStyle}">
             <i data-lucide="plus" class="w-3 h-3 stroke-[3px]"></i>
           </span>
         </button>
       `;
     }
 
+    const textoEstoque = (p.estoque_atual !== undefined && p.estoque_atual <= 0) ? 'Sem Estoque' : `Estoque: ${p.estoque_atual !== undefined ? p.estoque_atual : '?'}`;
+    const imgStyle = (p.estoque_atual !== undefined && p.estoque_atual <= 0) ? 'filter: grayscale(100%); opacity: 0.5;' : '';
+
     // Por fim, injetamos (innerHTML) o HTML completo do Card (Caixinha do produto)
     grid.innerHTML += `
       <div class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group">
         <div class="h-40 overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
-          <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply">
+          <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply" style="${imgStyle}">
         </div>
         <div class="p-5">
           <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
           <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">${p.descricao || ''}</p>
-          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque: ${p.estoque_atual !== undefined ? p.estoque_atual : '?'}</p>
+          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">${textoEstoque}</p>
           <div class="flex justify-between items-center h-10 mt-3">
             <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
