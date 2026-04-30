@@ -683,16 +683,18 @@ function renderizarCatalogo(filtro = "") {
 
     // Por fim, injetamos (innerHTML) o HTML completo do Card (Caixinha do produto)
     grid.innerHTML += `
-      <div class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group">
-        <div class="h-40 overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
+      <div class="product-card bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-900 transition-all group flex flex-col">
+        <div class="w-full aspect-square overflow-hidden bg-slate-50 relative cursor-pointer border-b border-slate-100" onclick="alterarQuantidade(${p.id}, 1, event)">
           <img src="${p.imagem_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 mix-blend-multiply" style="${imgStyle}">
         </div>
-        <div class="p-5">
-          <h4 class="font-black text-blue-900 leading-tight mb-1">${p.nome}</h4>
-          <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">${p.descricao || ''}</p>
-          <p class="text-[11px] font-bold mb-2 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">${textoEstoque}</p>
-          <div class="flex justify-between items-center h-10 mt-3">
-            <span class="text-xl font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
+        <div class="p-3 flex-1 flex flex-col justify-between">
+          <div>
+            <h4 class="font-black text-blue-900 text-sm leading-tight mb-1 line-clamp-2" title="${p.nome}">${p.nome}</h4>
+            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1 line-clamp-1">${p.descricao || ''}</p>
+            <p class="text-[10px] font-bold mb-1 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">${textoEstoque}</p>
+          </div>
+          <div class="flex justify-between items-end mt-2">
+            <span class="text-base font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
           </div>
         </div>
@@ -792,15 +794,15 @@ function renderizarResumoCompleto() {
     total += item.total;
     // Interpolação de Strings (Template literals com a crase ` `) permite colocar variáveis ${} no meio do HTML
     container.innerHTML += `
-      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-        <img src="${item.imagem_url}" class="w-20 h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+        <img src="${item.imagem_url}" class="w-24 h-24 sm:w-20 sm:h-20 object-cover rounded-xl border border-slate-100 mix-blend-multiply">
         
-        <div class="flex-1">
+        <div class="w-full sm:flex-1 flex flex-col items-center sm:items-start">
           <h4 class="font-bold text-blue-900 leading-tight">${item.nome}</h4>
           <p class="text-sm font-black text-blue-800 mt-1">R$ ${item.total.toFixed(2)}</p>
           <p class="text-[11px] font-bold mt-1 ${item.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">Estoque disponível: ${item.estoque_atual !== undefined ? item.estoque_atual : '?'}</p>
           
-          <div class="flex items-center gap-3 mt-3">
+          <div class="flex items-center justify-center sm:justify-start gap-3 mt-3 w-full">
             <div class="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
               <button onclick="alterarQtdResumo(${item.id}, -1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="minus" class="w-4 h-4"></i></button>
               <input 
@@ -813,7 +815,7 @@ function renderizarResumoCompleto() {
               <button onclick="alterarQtdResumo(${item.id}, 1)" class="px-3 py-1 text-blue-900 hover:bg-slate-200 active:bg-slate-300"><i data-lucide="plus" class="w-4 h-4"></i></button>
             </div>
 
-            <button onclick="removerItemResumo(${idx})" class="ml-auto text-blue-900 hover:text-red-600 active:scale-90 transition-all p-2">
+            <button onclick="removerItemResumo(${idx})" class="ml-auto sm:ml-auto mr-auto sm:mr-0 text-blue-900 hover:text-red-600 active:scale-90 transition-all p-2">
               <i data-lucide="trash-2" class="w-5 h-5"></i>
             </button>
           </div>

@@ -16,6 +16,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/output.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -54,42 +55,35 @@
     }
 
     .bg-circle-1 {
-      width: 500px;
-      height: 500px;
+      width: clamp(250px, 50vw, 500px);
+      height: clamp(250px, 50vw, 500px);
       background: #1e3a8a;
-      top: -150px;
-      right: -150px;
+      top: -10vw;
+      right: -10vw;
       animation-delay: 0s;
     }
 
     .bg-circle-2 {
-      width: 300px;
-      height: 300px;
+      width: clamp(150px, 30vw, 300px);
+      height: clamp(150px, 30vw, 300px);
       background: #2563eb;
-      bottom: -80px;
-      left: -80px;
+      bottom: -5vw;
+      left: -5vw;
       animation-delay: 2s;
     }
 
     .bg-circle-3 {
-      width: 200px;
-      height: 200px;
+      width: clamp(100px, 20vw, 200px);
+      height: clamp(100px, 20vw, 200px);
       background: #1e3a8a;
-      bottom: 100px;
-      right: 50px;
+      bottom: 10vw;
+      right: 5vw;
       animation-delay: 4s;
     }
 
     @keyframes floatCircle {
-
-      0%,
-      100% {
-        transform: translateY(0px);
-      }
-
-      50% {
-        transform: translateY(-20px);
-      }
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
     }
 
     /* ── Conteúdo central ── */
@@ -97,44 +91,39 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 32px;
+      gap: clamp(16px, 4vw, 32px);
       position: relative;
       z-index: 10;
       animation: fadeInUp 0.8s ease both;
+      padding: 0 20px;
     }
 
     @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ── Logo ── */
     .home-logo {
-      width: 460px;
-      max-width: 80vw;
+      width: clamp(280px, 40vw, 400px);
+      max-width: 90vw;
       filter: drop-shadow(0 8px 24px rgba(30, 58, 138, 0.15));
       animation: fadeInUp 0.8s ease 0.1s both;
     }
 
     /* ── Textos ── */
     .home-welcome {
-      font-size: clamp(64px, 8vw, 82px);
+      font-size: clamp(36px, 6vw, 64px);
+      line-height: 1.1;
       font-weight: 900;
       color: #1e3a8a;
-      letter-spacing: -1.5px;
+      letter-spacing: -1px;
       text-align: center;
       animation: fadeInUp 0.8s ease 0.2s both;
     }
 
     .home-subtitle {
-      font-size: clamp(16px, 2.5vw, 22px);
+      font-size: clamp(16px, 2vw, 20px);
       font-weight: 500;
       color: #475569;
       text-align: center;

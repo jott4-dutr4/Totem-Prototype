@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/output.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       * { box-sizing: border-box; }
       body {
@@ -59,7 +60,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 32px 24px;
+        padding: clamp(16px, 4vw, 32px) clamp(16px, 4vw, 24px);
         gap: 0;
       }
 
@@ -69,7 +70,7 @@
         border-radius: 28px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 8px 40px rgba(0,0,0,0.07);
-        padding: 48px 40px;
+        padding: clamp(24px, 6vw, 48px) clamp(20px, 5vw, 40px);
         width: 100%;
         max-width: 480px;
         animation: fadeInCard 0.4s ease both;
@@ -81,7 +82,8 @@
 
       /* ── Ícone no topo do card ── */
       .id-icon {
-        width: 72px; height: 72px;
+        width: clamp(56px, 12vw, 72px); 
+        height: clamp(56px, 12vw, 72px);
         background: #dbeafe;
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
@@ -89,7 +91,7 @@
       }
 
       .id-title {
-        font-size: 26px;
+        font-size: clamp(20px, 5vw, 26px);
         font-weight: 900;
         color: #1e3a8a;
         text-align: center;
@@ -97,7 +99,7 @@
         letter-spacing: -0.5px;
       }
       .id-subtitle {
-        font-size: 14px;
+        font-size: clamp(12px, 3vw, 14px);
         color: #64748b;
         text-align: center;
         margin-bottom: 32px;
@@ -120,8 +122,8 @@
         background: #f8fafc;
         color: #1e3a8a;
         border-radius: 14px;
-        padding: 18px 20px;
-        font-size: 22px;
+        padding: clamp(14px, 3vw, 18px) 20px;
+        font-size: clamp(18px, 4vw, 22px);
         font-weight: 700;
         font-family: 'Inter', sans-serif;
         letter-spacing: 2px;
@@ -146,9 +148,9 @@
         width: 100%;
         background: #1e3a8a;
         color: white;
-        font-size: 17px;
+        font-size: clamp(15px, 4vw, 17px);
         font-weight: 800;
-        padding: 20px;
+        padding: clamp(16px, 4vw, 20px);
         border-radius: 14px;
         border: none;
         cursor: pointer;
@@ -186,9 +188,9 @@
         width: 100%;
         background: white;
         color: #475569;
-        font-size: 15px;
+        font-size: clamp(14px, 3.5vw, 15px);
         font-weight: 700;
-        padding: 18px;
+        padding: clamp(14px, 3vw, 18px);
         border-radius: 14px;
         border: 2px solid #e2e8f0;
         cursor: pointer;
@@ -207,8 +209,9 @@
       .id-footer {
         background: white;
         border-top: 2px solid #f1f5f9;
-        padding: 20px 32px;
+        padding: clamp(16px, 4vw, 20px) clamp(16px, 5vw, 32px);
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
         gap: 16px;
@@ -222,13 +225,13 @@
         color: #1e3a8a;
         font-size: 15px;
         font-weight: 800;
-        padding: 16px 28px;
+        padding: 12px 24px;
         border-radius: 14px;
         border: none;
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
         font-family: 'Inter', sans-serif;
-        min-height: 56px;
+        min-height: 50px;
         display: flex;
         align-items: center;
         gap: 8px;
