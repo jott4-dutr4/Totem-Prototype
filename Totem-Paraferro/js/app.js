@@ -637,9 +637,9 @@ function renderizarCatalogo(filtro = "") {
     // Se estiver, desenhamos um controle com [-] [numero] [+]
     if (itemNoCarrinho) {
       controlesHTML = `
-        <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl overflow-hidden shadow-inner">
-          <button onclick="alterarQuantidade(${p.id}, -1, event)" class="px-3 py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
-            <i data-lucide="minus" class="w-4 h-4"></i>
+        <div class="flex items-center bg-slate-100 border border-slate-300 rounded-xl overflow-hidden shadow-inner shrink-0">
+          <button onclick="alterarQuantidade(${p.id}, -1, event)" class="px-2 sm:px-3 py-1 sm:py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
+            <i data-lucide="minus" class="w-3 h-3 sm:w-4 sm:h-4"></i>
           </button>
           
           <input 
@@ -647,11 +647,11 @@ function renderizarCatalogo(filtro = "") {
             value="${itemNoCarrinho.qtd}" 
             onchange="alterarQuantidadeManual(${p.id}, this.value)"
             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-            class="w-12 py-2 bg-white font-black text-blue-900 text-sm text-center border-x border-slate-300 focus:outline-none focus:bg-blue-50"
+            class="w-8 sm:w-10 py-1 sm:py-2 bg-white font-black text-blue-900 text-xs sm:text-sm text-center border-x border-slate-300 focus:outline-none focus:bg-blue-50"
           />
 
-          <button onclick="alterarQuantidade(${p.id}, 1, event)" class="px-3 py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+          <button onclick="alterarQuantidade(${p.id}, 1, event)" class="px-2 sm:px-3 py-1 sm:py-2 text-blue-900 hover:bg-slate-200 transition-colors active:bg-slate-300">
+            <i data-lucide="plus" class="w-3 h-3 sm:w-4 sm:h-4"></i>
           </button>
         </div>
       `;
@@ -693,7 +693,7 @@ function renderizarCatalogo(filtro = "") {
             <p class="text-[9px] text-slate-500 uppercase font-bold mb-1 line-clamp-1">${p.descricao || ''}</p>
             <p class="text-[10px] font-bold mb-1 ${p.estoque_atual > 0 ? 'text-green-600' : 'text-red-500'}">${textoEstoque}</p>
           </div>
-          <div class="flex justify-between items-end mt-2">
+          <div class="flex flex-wrap justify-between items-center gap-2 mt-2">
             <span class="text-base font-black text-blue-900">R$ ${p.preco.toFixed(2)}</span>
             ${controlesHTML}
           </div>
