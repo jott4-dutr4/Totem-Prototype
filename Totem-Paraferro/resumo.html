@@ -7,100 +7,165 @@
 -->
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Totem Paraferro - Autoatendimento (Resumo)</title>
-    
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
-    <!-- SUPABASE CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/output.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="
-    text-blue-900
-    h-screen
-    overflow-hidden
-    select-none
-    bg-slate-50
-  ">
-    <div class="
-    flex
-    h-full
-    w-full
-    bg-slate-50
-    overflow-hidden
-  ">
-      <div class="
-    flex-1
-    relative
-    bg-slate-50
-    overflow-y-auto
-  " id="main-content">
-        <section id="screen-resumo" class="
-    h-full
-    flex
-    flex-col
-    fade-in
-    bg-slate-50
-    w-full
-    max-w-5xl
-    mx-auto
-  ">
-          <div class="p-4 md:p-6 bg-white border-b border-slate-200 flex justify-between items-center gap-4 sticky top-0 z-30 shadow-sm min-h-[80px] md:min-h-[100px]">
-            <div class="z-10 shrink-0">
-              <h2 class="text-lg sm:text-xl md:text-2xl font-black text-blue-900 leading-tight">Resumo do Pedido</h2>
-              <p class="text-[9px] sm:text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-widest mt-0.5">Revise seus itens</p>
-            </div>
 
-            <img
-              src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png"
-              alt="Logo Paraferro"
-              class="w-24 sm:w-32 md:w-44 max-h-12 md:max-h-16 object-contain"
-            />
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Totem Paraferro - Autoatendimento (Resumo)</title>
 
-          <div class="
-    flex-1
-    overflow-y-auto
-    p-6
-    space-y-4
-  " id="lista-resumo-completo">
-            <!-- Itens serão renderizados aqui -->
-          </div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/output.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 
-          <div class="bg-white border-t border-slate-200 p-6 md:p-8 sticky bottom-0 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-            <div class="flex justify-between items-center text-blue-900 md:block">
-              <span class="text-lg font-bold md:block">Total do Pedido</span>
-              <span class="text-3xl font-black md:block mt-1">R$ <span id="total-resumo-tela">0.00</span></span>
-            </div>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
 
-            <div class="flex flex-row gap-4 w-full md:w-auto">
-              <button onclick="window.location.href='produtos.html'" class="flex-1 md:flex-none bg-white text-blue-900 border-2 border-blue-900 font-black py-4 px-4 sm:px-8 rounded-2xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all text-xs sm:text-sm uppercase text-center flex items-center justify-center">
-                Continuar Comprando
-              </button>
+    /* Scrollbar fina e elegante */
+    .slim-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
 
-              <button onclick="irParaIdentificacao()" class="flex-1 md:flex-none bg-green-600 text-white font-black py-4 px-4 sm:px-12 rounded-2xl shadow-lg hover:bg-green-700 active:scale-95 transition-all text-xs sm:text-base uppercase text-center flex items-center justify-center">
-                Gerar Pedido
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
+    .slim-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .slim-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+
+    .slim-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 text-blue-900 select-none"
+  style="height:100dvh; display:flex; flex-direction:column; overflow:hidden;">
+
+  <!-- ════════════════════════════════════════
+         CABEÇALHO: Título + Logo
+         Fixo no topo, sem posicionamentos absolutos
+    ════════════════════════════════════════════ -->
+  <header
+    class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0 flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 gap-4">
+    <div>
+      <h1 class="text-lg sm:text-xl md:text-2xl font-black text-blue-900 leading-tight">Resumo do Pedido</h1>
+      <p class="text-[9px] sm:text-xs text-slate-500 uppercase font-bold tracking-widest mt-0.5">Revise seus itens</p>
     </div>
-    <script src="js/supabase-config.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-      lucide.createIcons();
-      window.onload = function() {
-          carregarSessao();           // Carrega carrinho e estado da sessão
-          carregarCarrinhoDaSessao(); // Restaura o carrinho
-          renderizarResumoCompleto(); // Desenha a lista de itens
-          iniciarTimerInatividade();  // Timer de inatividade (30s)
-      };
-    </script>
-  </body>
+    <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro"
+      class="h-10 sm:h-12 md:h-14 w-auto object-contain" />
+  </header>
+
+  <!-- ════════════════════════════════════════
+         CORPO: responsivo via flex
+         Abaixo de 1024px → coluna única (lista + footer sticky)
+         Acima de 1024px  → 2 colunas (lista | painel lateral)
+    ════════════════════════════════════════════ -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ── LISTA DE ITENS ──────────────────────────────────────────
+           Sempre cresce para preencher o espaço disponível
+           Tem padding-bottom no mobile para não ficar atrás do footer sticky
+      ──────────────────────────────────────────────────────────────── -->
+    <main id="lista-resumo-completo" class="flex-1 overflow-y-auto slim-scroll p-4 sm:p-5 md:p-6 space-y-3
+               pb-[160px] lg:pb-6">
+      <!-- Itens injetados pelo app.js -->
+    </main>
+
+    <!-- ── PAINEL LATERAL (só em desktop ≥ 1024px) ─────────────────
+           Fica à direita com largura fixa
+           Em mobile/tablet fica OCULTO (hidden lg:flex)
+      ──────────────────────────────────────────────────────────────── -->
+    <aside
+      class="hidden lg:flex flex-col w-80 xl:w-96 bg-white border-l border-slate-200 shadow-[-6px_0_20px_rgba(0,0,0,0.05)]">
+
+      <!-- Espaço vazio empurra o card para baixo -->
+      <div class="flex-1"></div>
+
+      <!-- Card de total + botões no desktop -->
+      <div class="p-6 xl:p-8 space-y-4 border-t border-slate-100">
+
+        <!-- Total -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <p class="text-xs text-slate-500 uppercase font-bold tracking-widest mb-2">Total do Pedido</p>
+          <p class="text-4xl font-black text-blue-900">
+            R$ <span id="total-resumo-tela-desktop">0.00</span>
+          </p>
+        </div>
+
+        <!-- Botão principal: Gerar Pedido -->
+        <button onclick="irParaIdentificacao()"
+          class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-green-700 active:scale-95 transition-all text-base uppercase flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-5 h-5"></i>
+          Gerar Pedido
+        </button>
+
+        <!-- Botão secundário: Continuar Comprando -->
+        <button onclick="window.location.href='produtos.html'"
+          class="w-full bg-white text-blue-900 border-2 border-blue-900 font-black py-3 rounded-2xl hover:bg-slate-50 active:scale-95 transition-all text-sm uppercase flex items-center justify-center gap-2">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          Continuar Comprando
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+         FOOTER STICKY (apenas em mobile/tablet < 1024px)
+         Gruda no rodapé da tela — estilo iFood/Mercado Livre
+         Em desktop (≥ 1024px) fica oculto (lg:hidden)
+    ════════════════════════════════════════════ -->
+  <footer
+    class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-4 sm:px-6 py-4 z-50">
+
+    <!-- Total -->
+    <div class="flex items-baseline justify-between mb-3">
+      <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wide">Total do Pedido</span>
+      <span class="text-2xl sm:text-3xl font-black text-blue-900">R$ <span id="total-resumo-tela">0.00</span></span>
+    </div>
+
+    <!-- Botões lado a lado -->
+    <div class="flex gap-3">
+      <button onclick="window.location.href='produtos.html'"
+        class="flex-1 bg-white text-blue-900 border-2 border-blue-900 font-black py-3 rounded-2xl hover:bg-slate-50 active:scale-95 transition-all text-xs sm:text-sm uppercase text-center">
+        Continuar Comprando?
+      </button>
+      <button onclick="irParaIdentificacao()"
+        class="flex-2 basis-[60%] bg-green-600 text-white font-black py-3 rounded-2xl shadow-lg hover:bg-green-700 active:scale-95 transition-all text-sm sm:text-base uppercase text-center">
+        Gerar Pedido
+      </button>
+    </div>
+  </footer>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Sincroniza o total entre os dois spans (mobile footer e desktop sidebar)
+    function syncTotal() {
+      const mobile = document.getElementById("total-resumo-tela");
+      const desktop = document.getElementById("total-resumo-tela-desktop");
+      if (mobile && desktop) desktop.textContent = mobile.textContent;
+    }
+
+    lucide.createIcons();
+    window.onload = function () {
+      carregarSessao();
+      carregarCarrinhoDaSessao();
+      renderizarResumoCompleto();
+      syncTotal();
+      iniciarTimerInatividade();
+    };
+  </script>
+</body>
+
 </html>

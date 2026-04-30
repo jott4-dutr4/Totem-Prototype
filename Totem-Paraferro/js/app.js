@@ -824,7 +824,12 @@ function renderizarResumoCompleto() {
     `;
   });
 
-  document.getElementById("total-resumo-tela").innerText = total.toFixed(2);
+  // Atualiza os dois spans: mobile footer e desktop sidebar
+  const totalVal = total.toFixed(2);
+  const mobileSpan  = document.getElementById("total-resumo-tela");
+  const desktopSpan = document.getElementById("total-resumo-tela-desktop");
+  if (mobileSpan)  mobileSpan.innerText  = totalVal;
+  if (desktopSpan) desktopSpan.innerText = totalVal;
   lucide.createIcons();
 }
 
