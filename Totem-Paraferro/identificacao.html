@@ -19,94 +19,120 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/output.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
       body {
         font-family: 'Inter', sans-serif;
         background: #f8fafc;
-        height: 100vh;
+        /* 100dvh: respeita a barra de endereço do celular em landscape */
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
         user-select: none;
       }
 
-      /* ── Layout principal ── */
-      .identificacao-screen {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        background: #f8fafc;
-      }
-
-      /* ── Cabeçalho ── */
+      /* ══════════════════════════════════════════
+         CABEÇALHO: Logo sempre visível no topo
+      ══════════════════════════════════════════ */
       .id-header {
         background: white;
         border-bottom: 1px solid #e2e8f0;
-        padding: 20px 32px;
+        padding: 10px 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
-        min-height: 80px;
+        flex-shrink: 0;                   /* nunca encolhe */
         box-shadow: 0 1px 8px rgba(0,0,0,0.05);
       }
       .id-header img {
-        width: 140px;
+        /* vh em vez de px: a logo escala junto com a altura da tela */
+        height: clamp(32px, 5vh, 54px);
+        width: auto;
+        object-fit: contain;
       }
 
-      /* ── Área central de conteúdo ── */
+      /* ══════════════════════════════════════════
+         CORPO: scrollável quando necessário (landscape)
+      ══════════════════════════════════════════ */
       .id-body {
         flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
         align-items: center;
+        /* justify-content: center centraliza quando cabe; rola quando não cabe */
         justify-content: center;
-        padding: clamp(16px, 4vw, 32px) clamp(16px, 4vw, 24px);
-        gap: 0;
+        padding: clamp(10px, 3vh, 28px) clamp(16px, 4vw, 24px);
       }
 
-      /* ── Card de identificação ── */
+      /* ══════════════════════════════════════════
+         CARD DE IDENTIFICAÇÃO
+      ══════════════════════════════════════════ */
       .id-card {
         background: white;
-        border-radius: 28px;
+        border-radius: 24px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 8px 40px rgba(0,0,0,0.07);
-        padding: clamp(24px, 6vw, 48px) clamp(20px, 5vw, 40px);
+        /* Padding responsivo usando vh para se adaptar à altura */
+        padding: clamp(18px, 3.5vh, 44px) clamp(20px, 5vw, 40px);
         width: 100%;
         max-width: 480px;
-        animation: fadeInCard 0.4s ease both;
+        /* Margem vertical para o scroll no landscape funcionar */
+        margin: 8px 0;
+        animation: fadeInCard 0.35s ease both;
       }
       @keyframes fadeInCard {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
 
-      /* ── Ícone no topo do card ── */
+      /* ══════════════════════════════════════════
+         ÍCONE (encolhe em landscape automaticamente)
+      ══════════════════════════════════════════ */
       .id-icon {
-        width: clamp(56px, 12vw, 72px); 
-        height: clamp(56px, 12vw, 72px);
+        width:  clamp(40px, 7vh, 72px);
+        height: clamp(40px, 7vh, 72px);
         background: #dbeafe;
         border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto clamp(10px, 2vh, 20px);
+      }
+      .id-icon svg {
+        width:  clamp(20px, 3.5vh, 32px);
+        height: clamp(20px, 3.5vh, 32px);
+        color: #1e3a8a;
       }
 
+      /* ══════════════════════════════════════════
+         TEXTOS
+      ══════════════════════════════════════════ */
       .id-title {
-        font-size: clamp(20px, 5vw, 26px);
+        font-size: clamp(17px, 3.5vh, 26px);
         font-weight: 900;
         color: #1e3a8a;
         text-align: center;
-        margin-bottom: 8px;
+        margin-bottom: clamp(4px, 1vh, 8px);
         letter-spacing: -0.5px;
+        line-height: 1.2;
       }
       .id-subtitle {
-        font-size: clamp(12px, 3vw, 14px);
+        font-size: clamp(11px, 1.8vh, 14px);
         color: #64748b;
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: clamp(14px, 2.5vh, 28px);
         font-weight: 500;
+        line-height: 1.5;
       }
 
-      /* ── Campo de CPF ── */
+      /* ══════════════════════════════════════════
+         CAMPO CPF
+      ══════════════════════════════════════════ */
       .id-label {
         display: block;
         font-size: 11px;
@@ -114,7 +140,7 @@
         color: #1e3a8a;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .id-input {
         width: 100%;
@@ -122,203 +148,202 @@
         background: #f8fafc;
         color: #1e3a8a;
         border-radius: 14px;
-        padding: clamp(14px, 3vw, 18px) 20px;
-        font-size: clamp(18px, 4vw, 22px);
+        padding: clamp(10px, 2vh, 18px) 20px;
+        font-size: clamp(18px, 3.5vh, 22px);
         font-weight: 700;
         font-family: 'Inter', sans-serif;
         letter-spacing: 2px;
         text-align: center;
         outline: none;
         transition: border-color 0.2s, box-shadow 0.2s;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .id-input:focus {
         border-color: #1e3a8a;
         box-shadow: 0 0 0 4px rgba(30,58,138,0.1);
         background: white;
       }
-      .id-input::placeholder {
-        color: #cbd5e1;
-        font-weight: 400;
-        letter-spacing: 1px;
-      }
+      .id-input::placeholder { color: #cbd5e1; font-weight: 400; letter-spacing: 1px; }
 
-      /* ── Botão principal "Continuar" ── */
+      /* ══════════════════════════════════════════
+         BOTÃO PRINCIPAL: Continuar
+      ══════════════════════════════════════════ */
       .btn-continuar {
         width: 100%;
         background: #1e3a8a;
         color: white;
-        font-size: clamp(15px, 4vw, 17px);
+        font-size: clamp(14px, 2.8vh, 17px);
         font-weight: 800;
-        padding: clamp(16px, 4vw, 20px);
+        padding: clamp(12px, 2.5vh, 18px);
         border-radius: 14px;
         border: none;
         cursor: pointer;
-        margin-top: 20px;
+        margin-top: clamp(10px, 2vh, 18px);
         transition: background 0.2s, transform 0.1s;
         font-family: 'Inter', sans-serif;
-        min-height: 60px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .btn-continuar:hover { background: #1d4ed8; }
-      .btn-continuar:active { transform: scale(0.98); }
+      .btn-continuar:hover   { background: #1d4ed8; }
+      .btn-continuar:active  { transform: scale(0.98); }
       .btn-continuar:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
 
-      /* ── Divisor ── */
+      /* ══════════════════════════════════════════
+         DIVISOR OU
+      ══════════════════════════════════════════ */
       .id-divider {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin: 20px 0;
+        margin: clamp(10px, 2vh, 18px) 0;
         color: #94a3b8;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
       }
       .id-divider::before,
       .id-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #e2e8f0;
+        content: ''; flex: 1; height: 1px; background: #e2e8f0;
       }
 
-      /* ── Botão secundário "Continuar sem CPF" ── */
+      /* ══════════════════════════════════════════
+         BOTÃO SECUNDÁRIO: Continuar sem CPF
+      ══════════════════════════════════════════ */
       .btn-sem-cpf {
         width: 100%;
         background: white;
         color: #475569;
-        font-size: clamp(14px, 3.5vw, 15px);
+        font-size: clamp(13px, 2.5vh, 15px);
         font-weight: 700;
-        padding: clamp(14px, 3vw, 18px);
+        padding: clamp(10px, 2vh, 16px);
         border-radius: 14px;
         border: 2px solid #e2e8f0;
         cursor: pointer;
         transition: background 0.2s, border-color 0.2s, transform 0.1s;
         font-family: 'Inter', sans-serif;
-        min-height: 60px;
+        min-height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
       }
-      .btn-sem-cpf:hover { background: #f1f5f9; border-color: #cbd5e1; }
+      .btn-sem-cpf:hover  { background: #f1f5f9; border-color: #cbd5e1; }
       .btn-sem-cpf:active { transform: scale(0.98); }
 
-      /* ── Rodapé (botões de navegação fixos) ── */
+      /* ══════════════════════════════════════════
+         RODAPÉ: Voltar + indicador de etapa
+      ══════════════════════════════════════════ */
       .id-footer {
         background: white;
-        border-top: 2px solid #f1f5f9;
-        padding: clamp(16px, 4vw, 20px) clamp(16px, 5vw, 32px);
+        border-top: 1px solid #e2e8f0;
+        padding: clamp(8px, 1.5vh, 16px) clamp(16px, 4vw, 32px);
         display: flex;
-        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
-        gap: 16px;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-        shrink: 0;
+        gap: 12px;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+        flex-shrink: 0;
       }
-
-      /* ── Botão Voltar (padrão da app) ── */
       .btn-voltar {
         background: #f1f5f9;
         color: #1e3a8a;
-        font-size: 15px;
+        font-size: 13px;
         font-weight: 800;
-        padding: 12px 24px;
-        border-radius: 14px;
+        padding: 9px 18px;
+        border-radius: 12px;
         border: none;
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
         font-family: 'Inter', sans-serif;
-        min-height: 50px;
+        min-height: 40px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
       }
-      .btn-voltar:hover { background: #e2e8f0; }
+      .btn-voltar:hover  { background: #e2e8f0; }
       .btn-voltar:active { transform: scale(0.97); }
     </style>
   </head>
+
   <body>
-    <div class="identificacao-screen">
 
-      <!-- ── Cabeçalho ── -->
-      <header class="id-header">
-        <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" />
-      </header>
+    <!-- ── Cabeçalho ── -->
+    <header class="id-header">
+      <img src="https://i.postimg.cc/RCfJNQY9/logoparaferro.png" alt="Logo Paraferro" />
+    </header>
 
-      <!-- ── Corpo principal ── -->
-      <main class="id-body">
-        <div class="id-card">
+    <!-- ── Corpo principal (scrollável) ── -->
+    <main class="id-body">
+      <div class="id-card">
 
-          <!-- Ícone -->
-          <div class="id-icon">
-            <i data-lucide="user-check" style="width:32px;height:32px;color:#1e3a8a;"></i>
-          </div>
-
-          <h1 class="id-title">Já tem cadastro conosco?</h1>
-          <p class="id-subtitle">
-            Informe seu CPF para agilizar a emissão da NFC-e<br>e acumular benefícios.
-          </p>
-
-          <!-- Campo CPF -->
-          <label class="id-label" for="input-cpf-identificacao">Número do CPF</label>
-          <input
-            type="tel"
-            id="input-cpf-identificacao"
-            class="id-input"
-            placeholder="000.000.000-00"
-            maxlength="14"
-            oninput="mascaraCPF(this)"
-            onkeydown="if(event.key==='Enter') verificarCPFIdentificacao()"
-            autocomplete="off"
-          />
-
-          <!-- Botão principal -->
-          <button
-            id="btn-continuar-identificacao"
-            class="btn-continuar"
-            onclick="verificarCPFIdentificacao()"
-          >
-            Continuar
-          </button>
-
-          <!-- Divisor -->
-          <div class="id-divider">ou</div>
-
-          <!-- Botão sem CPF -->
-          <button
-            id="btn-sem-cpf"
-            class="btn-sem-cpf"
-            onclick="continuarSemCPF()"
-          >
-            <i data-lucide="arrow-right-circle" style="width:20px;height:20px;"></i>
-            Continuar sem CPF
-          </button>
-
+        <!-- Ícone -->
+        <div class="id-icon">
+          <i data-lucide="user-check" style="color:#1e3a8a;"></i>
         </div>
-      </main>
 
-      <!-- ── Rodapé com botão Voltar (sempre inferior esquerdo) ── -->
-      <footer class="id-footer">
-        <button class="btn-voltar" onclick="window.location.href='resumo.html'">
-          <i data-lucide="arrow-left" style="width:18px;height:18px;"></i>
-          Voltar
+        <h1 class="id-title">Já tem cadastro conosco?</h1>
+        <p class="id-subtitle">
+          Informe seu CPF para agilizar a emissão da NFC-e<br>e acumular benefícios.
+        </p>
+
+        <!-- Campo CPF -->
+        <label class="id-label" for="input-cpf-identificacao">Número do CPF</label>
+        <input
+          type="tel"
+          id="input-cpf-identificacao"
+          class="id-input"
+          placeholder="000.000.000-00"
+          maxlength="14"
+          oninput="mascaraCPF(this)"
+          onkeydown="if(event.key==='Enter') verificarCPFIdentificacao()"
+          autocomplete="off"
+        />
+
+        <!-- Botão principal -->
+        <button
+          id="btn-continuar-identificacao"
+          class="btn-continuar"
+          onclick="verificarCPFIdentificacao()"
+        >
+          Continuar
         </button>
-        <span style="font-size:12px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;">
-          Etapa 3 de 4 · Identificação
-        </span>
-      </footer>
 
-    </div>
+        <!-- Divisor -->
+        <div class="id-divider">ou</div>
+
+        <!-- Botão sem CPF -->
+        <button
+          id="btn-sem-cpf"
+          class="btn-sem-cpf"
+          onclick="continuarSemCPF()"
+        >
+          <i data-lucide="arrow-right-circle" style="width:20px;height:20px;"></i>
+          Continuar sem CPF
+        </button>
+
+      </div>
+    </main>
+
+    <!-- ── Rodapé com botão Voltar ── -->
+    <footer class="id-footer">
+      <button class="btn-voltar" onclick="window.location.href='resumo.html'">
+        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+        Voltar
+      </button>
+      <span style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;">
+        Etapa 3 de 4 · Identificação
+      </span>
+    </footer>
 
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
       lucide.createIcons();
       window.onload = function() {
-        carregarSessao(); // Garante que o carrinho está disponível
+        carregarSessao();          // Garante que o carrinho está disponível
         iniciarTimerInatividade(); // Ativa o timer de inatividade
       };
     </script>
